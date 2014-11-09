@@ -12,8 +12,8 @@ import java.util.Map;
  */
 public class Cave {
     
-    public final int width;
-    public final int height;
+    public final float width;
+    public final float height;
 
     private Map<Point, Spot> obstacles;
 

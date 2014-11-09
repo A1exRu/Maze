@@ -7,8 +7,8 @@ import java.util.*;
  */
 public class CaveBuilder {
 
-    public final int width;
-    public final int height;
+    public final float width;
+    public final float height;
 
     final Map<Point, Spot> obstacles;
 
@@ -35,12 +35,12 @@ public class CaveBuilder {
         return addObstacles(obstacle, obstacle.y, obstacle.y, 0, 1);
     }
 
-    public CaveBuilder addObstaclesVertical(Point from, int to) {
+    public CaveBuilder addObstaclesVertical(Point from, float to) {
         return addObstacles(from, from.y, to, 0, 1);
     }
 
-    private CaveBuilder addObstacles(Point point, int from, int to, int dx, int dy) {
-        int count = Math.abs(from - to);
+    private CaveBuilder addObstacles(Point point, float from, float to, float dx, float dy) {
+        float count = Math.abs(from - to);
         int k = from > to ? -1 : 1;
         Point prev = point;
         for (int i = 0; i <= count; i++) {
