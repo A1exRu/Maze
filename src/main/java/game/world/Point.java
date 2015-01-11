@@ -1,7 +1,5 @@
 package game.world;
 
-import game.Main;
-
 /**
  * Created by Alexander on 01.11.2014.
  */

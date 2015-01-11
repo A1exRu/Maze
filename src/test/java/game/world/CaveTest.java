@@ -7,7 +7,7 @@ import org.junit.Test;
 import static junit.framework.TestCase.assertEquals;
 
 /**
- * Created by Alexander on 01.11.2014.
+ * @author Alexander
  */
 public class CaveTest {
 
@@ -47,6 +47,6 @@ public class CaveTest {
 
         cave.move(unit, Direction.DOWN);
         assertEquals(newPosition, unit.getPosition());
+        cave.visualize();
     }
-
 }
