@@ -2,9 +2,6 @@ package game.core;
 
 import game.world.Point;
 
-/**
- * @author Alexander
- */
 public class Unit {
 
     private final long id;

@@ -2,9 +2,6 @@ package game.world;
 
 import java.util.*;
 
-/**
- * @author Alexander
- */
 public class CaveBuilder {
 
     public final float width;

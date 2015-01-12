@@ -1,8 +1,5 @@
 package game.world;
 
-/**
- * @author Alexander
- */
 public enum Direction {
 
     UP {

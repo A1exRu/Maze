@@ -1,8 +1,5 @@
 package game.world;
 
-/**
- * @author Alexander
- */
 public class Point {
 
     public final float x;

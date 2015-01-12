@@ -6,9 +6,6 @@ import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
 
-/**
- * @author Alexander
- */
 public class CaveTest {
 
     private Unit unit;

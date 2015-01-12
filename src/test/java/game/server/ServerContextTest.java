@@ -5,9 +5,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- * @author Alexander
- */
 public class ServerContextTest {
 
     private final long GAME_ID = 1L;

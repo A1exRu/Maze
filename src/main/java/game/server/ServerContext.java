@@ -9,9 +9,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author Alexander
- */
 public class ServerContext {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerContext.class);

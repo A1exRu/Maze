@@ -3,9 +3,6 @@ package game.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author Alexander
- */
 public class Game implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Game.class);

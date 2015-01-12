@@ -5,9 +5,6 @@ import org.junit.Test;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 
-/**
- * @author Alexander
- */
 public class PointTest {
 
     @Test
