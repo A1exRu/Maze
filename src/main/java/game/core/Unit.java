@@ -3,7 +3,7 @@ package game.core;
 import game.world.Point;
 
 /**
- * Created by Alexander on 01.11.2014.
+ * @author Alexander
  */
 public class Unit {
 

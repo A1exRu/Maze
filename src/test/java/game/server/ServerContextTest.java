@@ -5,6 +5,9 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Alexander
+ */
 public class ServerContextTest {
 
     private final long GAME_ID = 1L;
@@ -21,7 +24,7 @@ public class ServerContextTest {
     public void tick() throws Exception{
         context.add(game);
 
-        Thread.sleep(210);
+        Thread.sleep(250);
         assertEquals(2, game.getTick());
 
         context.stop(GAME_ID);
@@ -34,7 +37,7 @@ public class ServerContextTest {
     public void terminate() throws Exception {
         boolean added = context.add(game);
         assertTrue(added);
-        Thread.sleep(210);
+        Thread.sleep(250);
         assertEquals(2, game.getTick());
 
         context.terminate();

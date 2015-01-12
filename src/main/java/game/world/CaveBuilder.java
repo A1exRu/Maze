@@ -3,7 +3,7 @@ package game.world;
 import java.util.*;
 
 /**
- * Created by Alexander on 01.11.2014.
+ * @author Alexander
  */
 public class CaveBuilder {
 

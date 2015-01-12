@@ -1,17 +1,14 @@
 package game.world;
 
 import game.core.Unit;
-import game.core.event.Event;
-import game.scan.service.EventServiceImpl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
- * Created by Alexander on 01.11.2014.
+ * @author Alexander
  */
 public class Cave {
     

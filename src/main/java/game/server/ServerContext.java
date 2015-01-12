@@ -1,5 +1,8 @@
 package game.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -11,6 +14,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ServerContext {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ServerContext.class);
     public static final int TICK_LEN = 100;
 
     private final Map<Long, Game> games = new ConcurrentHashMap<>();
@@ -24,7 +28,7 @@ public class ServerContext {
 
     public boolean add(Game task) {
         if (terminated) {
-            System.out.println("Server was terminated");
+            LOG.error("Server has already terminated");
         } else {
             games.put(task.getGameId(), task);
             scheduler.scheduleAtFixedRate(task, TICK_LEN, TICK_LEN, TimeUnit.MILLISECONDS);
@@ -49,7 +53,7 @@ public class ServerContext {
         try {
             scheduler.awaitTermination(5, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
-            System.out.println("Some games has been frozen");
+            LOG.error("Termination timeout, probably some games have frozen");
         }
         games.clear();
     }

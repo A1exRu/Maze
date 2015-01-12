@@ -1,10 +1,15 @@
 package game.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Alexander
  */
 public class Game implements Runnable {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Game.class);
+    
     private final int TICK_SCHEDULE = 120;
     private final int TICK_LENGTH = 30;
 
@@ -26,21 +31,21 @@ public class Game implements Runnable {
 
         long start = System.currentTimeMillis();
         if (start - lastTime > TICK_SCHEDULE) {
-            System.out.println("Scheduler too slow");
+            LOG.warn("Schedule too slow: mills {}, gameId {}", start - lastTime, gameId);
         }
         lastTime = start;
 
         try {
             tick();
         } catch (Exception e) {
-            System.out.println("Error detected");
+            LOG.error("Tick exception", e);
         }
 
         tick++;
 
         long end = System.currentTimeMillis();
         if (end - start > TICK_LENGTH) {
-            System.out.println("Tick too slow");
+            LOG.warn("Tick too slow: mills {}, gameId {}", end - start, gameId);
         }
     }
 

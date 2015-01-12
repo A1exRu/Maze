@@ -1,16 +1,20 @@
 apply plugin: 'java'
+apply from: 'libs.gradle'
 
 sourceCompatibility = 1.8
 version = '1.0'
-def springVersion = '4.1.1.RELEASE'
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
 dependencies {
-    compile group: 'org.springframework', name: 'spring-core', version: springVersion
-    compile group: 'org.springframework', name: 'spring-context', version: springVersion
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile (
+            libs.'mockito',
+            libs.'logger',
+    )
+
+    testCompile (
+            libs.'junit',
+    )
 }
