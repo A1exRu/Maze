@@ -4,12 +4,12 @@ import java.net.DatagramSocket;
 
 public class UdpSession {
     
-    public static long SESSION_TIMEOUT = 30000;
+    public static long SESSION_TIMEOUT = 300000;
     
     private final String token;
     private final DatagramSocket socket;
     
-    private long aliveTime;
+    private long timeout;
 
     public UdpSession(String token, DatagramSocket socket) {
         this.token = token;
@@ -18,14 +18,19 @@ public class UdpSession {
     }
     
     public boolean isAlive() {
-        return aliveTime > System.currentTimeMillis();
+        return timeout > System.currentTimeMillis();
     }
     
-    public final void prolong() {
-        aliveTime = System.currentTimeMillis() + SESSION_TIMEOUT;
+    public final long prolong() {
+        timeout = System.currentTimeMillis() + SESSION_TIMEOUT;
+        return timeout;
     }
 
     public String getToken() {
         return token;
+    }
+
+    public long getTimeout() {
+        return timeout;
     }
 }

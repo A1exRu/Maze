@@ -6,6 +6,7 @@ public enum Protocol {
 
     AUTHENTICATION,
     ACK,
+    PING
     ;
     
     public static final int VERSION = 1;
