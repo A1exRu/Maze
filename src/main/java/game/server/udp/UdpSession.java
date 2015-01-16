@@ -14,14 +14,18 @@ public class UdpSession {
     public UdpSession(String token, DatagramSocket socket) {
         this.token = token;
         this.socket = socket;
+        prolong();
     }
     
     public boolean isAlive() {
         return aliveTime > System.currentTimeMillis();
     }
     
-    public void prolongate() {
+    public final void prolong() {
         aliveTime = System.currentTimeMillis() + SESSION_TIMEOUT;
     }
-    
+
+    public String getToken() {
+        return token;
+    }
 }
