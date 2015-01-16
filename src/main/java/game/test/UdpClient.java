@@ -24,7 +24,6 @@ public class UdpClient {
 
     private boolean terminated;
     
-    private DatagramSocket socket;
     private ByteBuffer in = ByteBuffer.allocate(1024);
     private ByteBuffer out = ByteBuffer.allocate(1024);
 
@@ -39,11 +38,10 @@ public class UdpClient {
         this.port = port;
 
         try {
-            socket = new DatagramSocket();
             selector = Selector.open();
             channel = DatagramChannel.open();
             channel.configureBlocking(false);
-            channel.register(selector, SelectionKey.OP_READ);
+            channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
         } catch (Exception e) {
             logger.error("Failed to start client", e);
             terminated = true;
@@ -68,23 +66,17 @@ public class UdpClient {
     }
     
     public void receive() {
-//        byte[] datagram = new byte[1024];
-//        DatagramPacket req = new DatagramPacket(datagram, datagram.length, address);
-//        try {
-//            socket.receive(req);
-//        } catch (IOException e) {
-//            logger.error("Receive error", e);
-//            return;
-//        }
-
         try {
             selector.select(3000);
             Set<SelectionKey> keys = selector.keys();
             for (SelectionKey key : keys) {
                 if (key.isReadable()) {
+                    in.clear();
                     SocketAddress receive = channel.receive(in);
+                    in.flip();
                     byte[] datagram = new byte[in.remaining()];
-                    System.out.println(new String(datagram));
+                    in.get(datagram);
+                    System.out.print(new String(datagram));
                     in.clear();
                 }
             }
@@ -106,12 +98,11 @@ public class UdpClient {
             out.putInt(1);
             out.put(message.getBytes());
             out.flip();
-            byte[] data = new byte[out.remaining()];
-            out.get(data);
-            DatagramPacket packet = new DatagramPacket(data, data.length, address);
+//            byte[] data = new byte[out.remaining()];
+//            out.get(data);
+//            DatagramPacket packet = new DatagramPacket(data, data.length, address);
             try {
-                
-                socket.send(packet);
+                channel.send(out, address);
                 logger.info("Packet transmitted");
             } catch (IOException e) {
                 logger.error("Transmit error", e);    
@@ -136,6 +127,6 @@ public class UdpClient {
     
     public void close() {
         terminated = true;
-        socket.close();
+//        socket.close();
     }
 }
