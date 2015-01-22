@@ -89,11 +89,20 @@ public class Receiver implements Runnable {
 
         int operation = buff.getInt();
         Protocol protocol = Protocol.valueOf(operation);
-        byte[] datagram = protocol.toDatagram(buff);
+        byte[] datagram = buff.remaining() == 0 ? new byte[0] : protocol.toDatagram(buff);
 
         switch (protocol) {
             case AUTHENTICATION: {
                 onAuth(address, new String(datagram));
+                break;
+            }
+            case PING: {
+                try {
+                    Thread.sleep(25);
+                } catch (InterruptedException e) {
+
+                }
+                onPing(address);
                 break;
             }
             default: {
@@ -130,6 +139,13 @@ public class Receiver implements Runnable {
         System.out.println("User " + session.getToken() + " said: '" + new String(datagram) + "'");
     }
     
+    public void onPing(SocketAddress address) throws IOException {
+        buff.clear();
+        buff.putInt(Protocol.PING.ordinal());
+        buff.flip();
+        channel.send(buff, address);
+    }
+    
     public void transmit() throws IOException {
         long now = System.currentTimeMillis();
         if (temp > now) {
@@ -137,6 +153,7 @@ public class Receiver implements Runnable {
         }
 
         buff.clear();
+        buff.putInt(Protocol.UPDATE.ordinal());
         buff.put(".".getBytes());
         for (SocketAddress address : sessions.keySet()) {
             buff.flip();

@@ -1,5 +1,6 @@
 package game.test;
 
+import game.server.udp.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +32,12 @@ public class UdpClient {
     private Selector selector;
     
     private boolean auth;
+    
     private volatile String message;
-
+    private volatile Protocol type;
+    
+    private long pingTime;
+    
     public UdpClient(String host, int port) {
         this.address = new InetSocketAddress(host, port);
         this.port = port;
@@ -53,13 +58,20 @@ public class UdpClient {
         new Thread(() -> loop(this::transmit)).start();
 
         Scanner scanner = new Scanner(System.in);
-        while (true) {
+        stop: while (true) {
             String next = scanner.nextLine();
-            if (":q".equals(next)) {
-                break;
-            }
-            
-            message = next;
+            switch (next) {
+                case ":q" : break stop;
+                case ":ping": {
+                    message = "";
+                    type = Protocol.PING;
+                    break;
+                }
+                default: {
+                    message = next;
+                    type = Protocol.ACK;
+                }
+            }           
         }
         
         terminated = true;
@@ -74,10 +86,19 @@ public class UdpClient {
                     in.clear();
                     SocketAddress receive = channel.receive(in);
                     in.flip();
-                    byte[] datagram = new byte[in.remaining()];
-                    in.get(datagram);
-                    System.out.print(new String(datagram));
-                    in.clear();
+                    int code = in.getInt();
+                    Protocol op = Protocol.valueOf(code);
+                    if (op == Protocol.PING) {
+                        long now = System.currentTimeMillis();
+                        System.out.println(now - pingTime);
+                        pingTime = -1;
+                        in.clear();
+                    } else {
+                        byte[] datagram = new byte[in.remaining()];
+                        in.get(datagram);
+                        System.out.print(new String(datagram));
+                        in.clear();    
+                    }
                 }
             }
 
@@ -87,32 +108,43 @@ public class UdpClient {
     }
     
     public void transmit() {
-        if (message != null) {
+        if (message != null && type != null) {
             out.clear();
-            if (auth) {
-                out.putInt(1);
-            } else {
-                out.putInt(0);
-                auth = true;
+            switch (type) {
+                case PING: {
+                    pingTime = System.currentTimeMillis();
+                    out.putInt(type.ordinal());
+                    break;
+                }
+                default: {
+                    if (auth) {
+                        out.putInt(1);
+                    } else {
+                        out.putInt(0);
+                        auth = true;
+                    }
+                    out.putInt(1);
+                    out.put(message.getBytes());
+                }
             }
-            out.putInt(1);
-            out.put(message.getBytes());
-            out.flip();
-//            byte[] data = new byte[out.remaining()];
-//            out.get(data);
-//            DatagramPacket packet = new DatagramPacket(data, data.length, address);
-            try {
-                channel.send(out, address);
-                logger.info("Packet transmitted");
-            } catch (IOException e) {
-                logger.error("Transmit error", e);    
-                return;
-            } finally {
-                message = null;
-            }
+            send();
         }
     }
-    
+
+    private void send() {
+        out.flip();
+        try {
+            channel.send(out, address);
+            logger.info("Packet transmitted");
+        } catch (IOException e) {
+            logger.error("Transmit error", e);
+            return;
+        } finally {
+            message = null;
+            type = null;
+        }
+    }
+
     private void loop(Runnable task) {
         while (!terminated) {
 //            System.out.println(task);
