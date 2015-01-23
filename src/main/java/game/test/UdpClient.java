@@ -61,7 +61,10 @@ public class UdpClient {
         stop: while (true) {
             String next = scanner.nextLine();
             switch (next) {
-                case ":q" : break stop;
+                case ":q" : {
+                    close();
+                    break stop;
+                }
                 case ":ping": {
                     message = "";
                     type = Protocol.PING;
@@ -138,11 +141,10 @@ public class UdpClient {
             logger.info("Packet transmitted");
         } catch (IOException e) {
             logger.error("Transmit error", e);
-            return;
-        } finally {
-            message = null;
-            type = null;
         }
+
+        message = null;
+        type = null;
     }
 
     private void loop(Runnable task) {
@@ -159,6 +161,5 @@ public class UdpClient {
     
     public void close() {
         terminated = true;
-//        socket.close();
     }
 }
