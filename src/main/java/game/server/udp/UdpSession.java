@@ -1,15 +1,22 @@
 package game.server.udp;
 
+import java.io.IOException;
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class UdpSession {
     
-    public static long SESSION_TIMEOUT = 300000;
+    public static long SESSION_TIMEOUT = 300000; //5 min
     
     private final String token;
     private final SocketAddress address;
 //    private final long gameId;
 //    private final long heroId;
+    
+    private Map<Long, Packet> packets = new ConcurrentHashMap<>();
     
     private long timeout;
 
@@ -27,6 +34,36 @@ public class UdpSession {
         timeout = System.currentTimeMillis() + SESSION_TIMEOUT;
         return timeout;
     }
+    
+    public void send(Packet packet) {
+        packets.put(packet.id, packet);
+    }
+    
+    public void ack(long packetId, int ackNum) {
+        Packet packet = packets.get(packetId);
+        if (packet != null) {
+            boolean transmit = packet.ack(ackNum);
+            if (transmit) {
+                packets.remove(packetId);
+            }
+        }
+    }
+    
+    public void submit(ByteBuffer buff, DatagramChannel channel) throws IOException {
+        for (Packet packet : packets.values()) {
+            if (packet.isTimeout()) {
+                byte[][] datagrams = packet.toParts();
+                for (byte i = 0; i < datagrams.length; i++) {
+                    byte[] datagram = datagrams[i];
+                    byte cmd = (i == datagrams.length - 1) ? Protocol.FINAL_PACKAGE : Protocol.PACKAGE; 
+                    Protocol.write(buff, cmd, i, datagram);
+                    channel.send(buff, address);
+                }
+                
+                packet.submit();
+            }
+        }
+    }
 
     public String getToken() {
         return token;
@@ -35,4 +72,5 @@ public class UdpSession {
     public long getTimeout() {
         return timeout;
     }
+    
 }

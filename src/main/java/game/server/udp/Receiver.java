@@ -1,5 +1,6 @@
 package game.server.udp;
 
+import game.server.ServerHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,27 +15,28 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Receiver implements Runnable {
+public class Receiver extends ServerHandler {
     
     private static final Logger logger = LoggerFactory.getLogger(Receiver.class);
     
-    private final ByteBuffer buff = ByteBuffer.allocate(1024);
-    private final Map<SocketAddress, UdpSession> sessions = new ConcurrentHashMap<>();
+    private final ByteBuffer buff = ByteBuffer.allocate(4096);
+    public static final Map<SocketAddress, UdpSession> sessions = new ConcurrentHashMap<>();
     
     private long sessionThreshold = Long.MAX_VALUE;
     
     private Selector selector;
     private DatagramChannel channel;
-    private boolean terminated;
     
     private long temp;
+    
+    private boolean tempFlag;
     
     public Receiver(DatagramChannel channel) {
         this.channel = channel;
     }
 
     @Override
-    public void run() {
+    public void onStart() {
         try {
             selector = Selector.open();
             channel.configureBlocking(false);
@@ -42,14 +44,22 @@ public class Receiver implements Runnable {
         } catch (IOException e) {
             logger.error("Initialization error", e);
         }
+    }
 
-        while (!terminated) {
-            try {
-                invalidate();
-                receive();
-                transmit();
-            } catch (Exception e) {
-                logger.error("Receiver error", e);
+    @Override
+    public void handle() throws IOException {
+        invalidate();
+        receive();
+        transmit();
+        if (!tempFlag && sessions.size() == 1) {
+            for (Map.Entry<SocketAddress, UdpSession> entry : sessions.entrySet()) {
+                String message = "";
+                for (int i = 0; i < 200; i++) {
+                    message += "Long long message " + i;
+                    
+                }
+                entry.getValue().send(new Packet(entry.getKey(), message.getBytes()));
+                tempFlag = true;
             }
         }
     }
@@ -87,16 +97,15 @@ public class Receiver implements Runnable {
     public void work(SocketAddress address) throws IOException{
         buff.flip();
 
-        int operation = buff.getInt();
-        Protocol protocol = Protocol.valueOf(operation);
-        byte[] datagram = buff.remaining() == 0 ? new byte[0] : protocol.toDatagram(buff);
+        byte cmd = buff.get();
+        byte[] datagram = buff.remaining() == 0 ? new byte[0] : Protocol.toDatagram(buff);
 
-        switch (protocol) {
-            case AUTHENTICATION: {
+        switch (cmd) {
+            case Protocol.AUTH: {
                 onAuth(address, new String(datagram));
                 break;
             }
-            case PING: {
+            case Protocol.PING: {
                 try {
                     Thread.sleep(25);
                 } catch (InterruptedException e) {
@@ -141,7 +150,7 @@ public class Receiver implements Runnable {
     
     public void onPing(SocketAddress address) throws IOException {
         buff.clear();
-        buff.putInt(Protocol.PING.ordinal());
+        buff.put(Protocol.PING);
         buff.flip();
         channel.send(buff, address);
     }
@@ -153,7 +162,7 @@ public class Receiver implements Runnable {
         }
 
         buff.clear();
-        buff.putInt(Protocol.UPDATE.ordinal());
+        buff.put(Protocol.FINAL_PACKAGE);
         buff.put(".".getBytes());
         for (SocketAddress address : sessions.keySet()) {
             buff.flip();
@@ -163,9 +172,10 @@ public class Receiver implements Runnable {
         buff.clear();
         temp = now + 3000;
     }
-    
+
+    @Override
     public void stop() {
-        terminated = true;
+        super.stop();
         selector.wakeup();
     }
 }

@@ -5,23 +5,35 @@ import java.net.SocketAddress;
 public class Packet {
 
     private static final int DELTA = 1000;
+    private static final int AWAIT = 1500;
     public static final byte[] EMPTY = new byte[0];
 
     public final long id;
     public final SocketAddress address;
     private final byte[] datagram;
-    private final boolean[] confirm;
+    private final boolean[] confirms;
     private final int capacity;
     private int left;
-
+    private long timeout;
     
     public Packet(SocketAddress address, byte[] datagram) {
         this.id = Transmitter.packetSequence.incrementAndGet();
         this.address = address;
         this.datagram = datagram;
         this.capacity = countParts(datagram.length, DELTA);
-        this.confirm = new boolean[capacity];
+        this.confirms = new boolean[capacity];
         this.left = capacity;
+    }
+    
+    byte[][] toParts() {
+        byte[][] parts = new byte[confirms.length][0];
+        for (int i = 0; i < confirms.length; i++) {
+            if (!confirms[i]) {
+                parts[i] = delta(i);        
+            }
+        }    
+        
+        return parts;
     }
 
     byte[] delta(int partNumber) {
@@ -43,15 +55,21 @@ public class Packet {
         return part;
     }
 
-    void ack(int partNumber) {
+    boolean ack(int partNumber) {
         if (isOutOfRange(partNumber)) {
-            return;
+            return false;
         }
         
-        if (!confirm[partNumber]) {
-            confirm[partNumber] = true;
+        if (!confirms[partNumber]) {
+            confirms[partNumber] = true;
             left--;
         }
+        
+        return left == 0;
+    }
+    
+    public void submit() {
+        timeout = System.currentTimeMillis() + AWAIT;
     }
     
     final int countParts(int length, int delta) {
@@ -67,6 +85,10 @@ public class Packet {
     private boolean isOutOfRange(int partNumber) {
         return partNumber < 0 || partNumber > capacity;
     }
+    
+    public boolean isTimeout() {
+        return timeout < System.currentTimeMillis();
+    }
 
     public int getCapacity() {
         return capacity;
@@ -75,4 +97,5 @@ public class Packet {
     public int getLeft() {
         return left;
     }
+    
 }

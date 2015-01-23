@@ -34,7 +34,7 @@ public class UdpClient {
     private boolean auth;
     
     private volatile String message;
-    private volatile Protocol type;
+    private volatile byte type;
     
     private long pingTime;
     
@@ -89,9 +89,8 @@ public class UdpClient {
                     in.clear();
                     SocketAddress receive = channel.receive(in);
                     in.flip();
-                    int code = in.getInt();
-                    Protocol op = Protocol.valueOf(code);
-                    if (op == Protocol.PING) {
+                    byte cmd = in.get();
+                    if (cmd == Protocol.PING) {
                         long now = System.currentTimeMillis();
                         System.out.println(now - pingTime);
                         pingTime = -1;
@@ -111,22 +110,22 @@ public class UdpClient {
     }
     
     public void transmit() {
-        if (message != null && type != null) {
+        if (message != null && type != 0) {
             out.clear();
             switch (type) {
-                case PING: {
+                case Protocol.PING: {
                     pingTime = System.currentTimeMillis();
-                    out.putInt(type.ordinal());
+                    out.put(type);
                     break;
                 }
                 default: {
-                    if (auth) {
-                        out.putInt(1);
+                    if (!auth) {
+                        out.put(Protocol.AUTH);
                     } else {
-                        out.putInt(0);
+                        out.put(Protocol.REFRESH);
                         auth = true;
                     }
-                    out.putInt(1);
+                    out.putInt(Protocol.VERSION);
                     out.put(message.getBytes());
                 }
             }
@@ -144,7 +143,7 @@ public class UdpClient {
         }
 
         message = null;
-        type = null;
+        type = 0;
     }
 
     private void loop(Runnable task) {
