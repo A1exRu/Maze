@@ -11,7 +11,7 @@ public class Unit {
         this.id = id;
     }
 
-    public long getId() {
+    public final long getId() {
         return id;
     }
 

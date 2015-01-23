@@ -1,19 +1,21 @@
 package game.server.udp;
 
-import java.net.DatagramSocket;
+import java.net.SocketAddress;
 
 public class UdpSession {
     
     public static long SESSION_TIMEOUT = 300000;
     
     private final String token;
-    private final DatagramSocket socket;
+    private final SocketAddress address;
+//    private final long gameId;
+//    private final long heroId;
     
     private long timeout;
 
-    public UdpSession(String token, DatagramSocket socket) {
+    public UdpSession(String token, SocketAddress address) {
         this.token = token;
-        this.socket = socket;
+        this.address = address;
         prolong();
     }
     

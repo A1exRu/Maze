@@ -113,7 +113,7 @@ public class Receiver implements Runnable {
     
     public void onAuth(SocketAddress address, String token) {
         if (true) { //validate token
-            UdpSession session = new UdpSession(token, channel.socket());
+            UdpSession session = new UdpSession(token, address);
             sessions.put(address, session);
             sessionThreshold = session.getTimeout();
         }
