@@ -50,11 +50,11 @@ public class Receiver extends ServerHandler {
     public void handle() throws IOException {
         invalidate();
         receive();
-        transmit();
+//        transmit();
         if (!tempFlag && sessions.size() == 1) {
             for (Map.Entry<SocketAddress, UdpSession> entry : sessions.entrySet()) {
                 String message = "";
-                for (int i = 0; i < 200; i++) {
+                for (int i = 0; i < 3; i++) {
                     message += "Long long message " + i;
                     
                 }

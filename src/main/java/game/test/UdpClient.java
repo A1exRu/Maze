@@ -1,5 +1,6 @@
 package game.test;
 
+import game.server.udp.Packet;
 import game.server.udp.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +14,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class UdpClient {
 
@@ -30,7 +31,10 @@ public class UdpClient {
 
     private DatagramChannel channel;
     private Selector selector;
-    
+
+    private Map<Long, Pack> packets = new HashMap<>();
+    private volatile List<Ack> acks = new CopyOnWriteArrayList<>();
+
     private boolean auth;
     
     private volatile String message;
@@ -90,15 +94,30 @@ public class UdpClient {
                     SocketAddress receive = channel.receive(in);
                     in.flip();
                     byte cmd = in.get();
+                    int version = in.getInt();
                     if (cmd == Protocol.PING) {
                         long now = System.currentTimeMillis();
                         System.out.println(now - pingTime);
                         pingTime = -1;
                         in.clear();
                     } else {
+                        int num = in.getInt();
+                        final long TEMP_PACK = 1l;
+                        Pack pack = packets.get(TEMP_PACK);
+                        if (pack == null) {
+                            pack = new Pack();
+                            pack.id = TEMP_PACK;
+                            packets.put(TEMP_PACK, pack);
+                        }
+
                         byte[] datagram = new byte[in.remaining()];
                         in.get(datagram);
-                        System.out.print(new String(datagram));
+                        pack.put(num, datagram);
+                        if (cmd == Protocol.FINAL_PACKAGE) {
+                            pack.last = num;
+                        }
+
+                        acks.add(new Ack(TEMP_PACK, num));
                         in.clear();    
                     }
                 }
@@ -131,6 +150,14 @@ public class UdpClient {
             }
             send();
         }
+
+        if (acks.size() > 0) {
+            for (Ack ack : acks) {
+                out.clear();
+                out.put(Protocol.ACK);
+                //TODO: complete ack transmission
+            }
+        }
     }
 
     private void send() {
@@ -160,5 +187,45 @@ public class UdpClient {
     
     public void close() {
         terminated = true;
+    }
+
+    public class Pack {
+        private long id;
+        private Map<Integer, byte[]> data = new TreeMap<>();
+
+        int length;
+        int last;
+
+        byte[] toDatagram() {
+            if (data.size() - 1 == last){
+                byte[] datagram = new byte[length];
+                int from = 0;
+                for (byte[] bytes : data.values()) {
+                    for (int i = 0; i < bytes.length; i++, from++) {
+                        datagram[from] = bytes[i];
+                    }
+                }
+                return datagram;
+            }
+
+            return Packet.EMPTY;
+        }
+
+        void put(int num, byte[] bytes) {
+            if (!data.containsKey(num)) {
+                data.put(num, bytes);
+                length += bytes.length;
+            }
+        }
+    }
+
+    public class Ack {
+        long packId;
+        int num;
+
+        public Ack(long packId, int num) {
+            this.packId = packId;
+            this.num = num;
+        }
     }
 }
