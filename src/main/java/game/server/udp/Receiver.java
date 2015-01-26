@@ -27,10 +27,6 @@ public class Receiver extends ServerHandler {
     private Selector selector;
     private DatagramChannel channel;
     
-    private long temp;
-    
-    private boolean tempFlag;
-    
     public Receiver(DatagramChannel channel) {
         this.channel = channel;
     }
@@ -50,33 +46,6 @@ public class Receiver extends ServerHandler {
     public void handle() throws IOException {
         invalidate();
         receive();
-        if (!tempFlag && sessions.size() == 1) {
-            for (Map.Entry<SocketAddress, UdpSession> entry : sessions.entrySet()) {
-                String message = "";
-                for (int i = 0; i < 3; i++) {
-                    message += "Long long message " + i;
-                    
-                }
-                entry.getValue().send(new Packet(entry.getKey(), message.getBytes()));
-                tempFlag = true;
-            }
-        }
-    }
-    
-    public void invalidate() {
-        long now = System.currentTimeMillis();
-        if (sessionThreshold < now) {
-            Set<Map.Entry<SocketAddress, UdpSession>> entries = sessions.entrySet();
-            Iterator<Map.Entry<SocketAddress, UdpSession>> it = entries.iterator();
-            while (it.hasNext()) {
-                Map.Entry<SocketAddress, UdpSession> entry = it.next();
-                UdpSession session = entry.getValue();
-                if (!session.isAlive()) {
-                    it.remove();
-                    logger.debug("Session invalidated {}", session.getToken());
-                }
-            }
-        }
     }
     
     public void receive() throws IOException {
@@ -93,7 +62,23 @@ public class Receiver extends ServerHandler {
             }
         }
     }
-    
+
+    public void invalidate() {
+        long now = System.currentTimeMillis();
+        if (sessionThreshold < now) {
+            Set<Map.Entry<SocketAddress, UdpSession>> entries = sessions.entrySet();
+            Iterator<Map.Entry<SocketAddress, UdpSession>> it = entries.iterator();
+            while (it.hasNext()) {
+                Map.Entry<SocketAddress, UdpSession> entry = it.next();
+                UdpSession session = entry.getValue();
+                if (!session.isAlive()) {
+                    it.remove();
+                    logger.debug("Session invalidated {}", session.getToken());
+                }
+            }
+        }
+    }
+
     public void work(SocketAddress address) throws IOException{
         buff.flip();
 
