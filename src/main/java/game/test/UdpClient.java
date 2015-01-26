@@ -15,6 +15,7 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class UdpClient {
@@ -33,7 +34,7 @@ public class UdpClient {
     private Selector selector;
 
     private Map<Long, Pack> packets = new HashMap<>();
-    private volatile List<Ack> acks = new CopyOnWriteArrayList<>();
+    private volatile Queue<Ack> acks = new ConcurrentLinkedQueue<Ack>();
 
     private boolean auth;
     
@@ -151,12 +152,15 @@ public class UdpClient {
             send();
         }
 
-        if (acks.size() > 0) {
-            for (Ack ack : acks) {
-                out.clear();
-                out.put(Protocol.ACK);
-                //TODO: complete ack transmission
-            }
+        while (!acks.isEmpty()) {
+            Ack ack = acks.poll();
+            out.clear();
+            out.put(Protocol.ACK);
+            out.putInt(Protocol.VERSION);
+            out.putLong(ack.packId);
+            out.putInt(ack.num);
+            send();
+            logger.debug("Ack pack {} num {}", ack.packId, ack.num);
         }
     }
 

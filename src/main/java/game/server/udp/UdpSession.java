@@ -1,5 +1,8 @@
 package game.server.udp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -9,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class UdpSession {
     
+    private static final Logger logger = LoggerFactory.getLogger(UdpSession.class);
     public static long SESSION_TIMEOUT = 300000; //5 min
     
     private final String token;
@@ -45,6 +49,7 @@ public class UdpSession {
             boolean transmit = packet.ack(ackNum);
             if (transmit) {
                 packets.remove(packetId);
+                logger.debug("Packet {} confirmed", packet.id);
             }
         }
     }

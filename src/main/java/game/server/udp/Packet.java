@@ -1,17 +1,18 @@
 package game.server.udp;
 
 import java.net.SocketAddress;
+import java.util.BitSet;
 
 public class Packet {
-
-    private static final int DELTA = 1000;
-    private static final int AWAIT = 1500;
+    
+    private static final int DELTA = 10;
+    private static final int AWAIT = 5000;
     public static final byte[] EMPTY = new byte[0];
 
     public final long id;
     public final SocketAddress address;
     private final byte[] datagram;
-    private final boolean[] confirms;
+    private final BitSet confirms;
     private final int capacity;
     private int left;
     private long timeout;
@@ -21,18 +22,14 @@ public class Packet {
         this.address = address;
         this.datagram = datagram;
         this.capacity = countParts(datagram.length, DELTA);
-        this.confirms = new boolean[capacity];
+        confirms = new BitSet();
+        confirms.set(0, capacity, true);
         this.left = capacity;
     }
     
     byte[][] toParts() {
-        byte[][] parts = new byte[confirms.length][0];
-        for (int i = 0; i < confirms.length; i++) {
-            if (!confirms[i]) {
-                parts[i] = delta(i);        
-            }
-        }    
-        
+        byte[][] parts = new byte[capacity][0];
+        confirms.stream().forEach(i -> parts[i] = delta(i));
         return parts;
     }
 
@@ -60,8 +57,8 @@ public class Packet {
             return false;
         }
         
-        if (!confirms[partNumber]) {
-            confirms[partNumber] = true;
+        if (confirms.get(partNumber)) {
+            confirms.set(partNumber, false);
             left--;
         }
         

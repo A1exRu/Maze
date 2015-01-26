@@ -50,7 +50,6 @@ public class Receiver extends ServerHandler {
     public void handle() throws IOException {
         invalidate();
         receive();
-//        transmit();
         if (!tempFlag && sessions.size() == 1) {
             for (Map.Entry<SocketAddress, UdpSession> entry : sessions.entrySet()) {
                 String message = "";
@@ -88,6 +87,7 @@ public class Receiver extends ServerHandler {
             SelectionKey key = it.next();
             if (key.isReadable()) {
                 DatagramChannel ch = (DatagramChannel)key.channel();
+                buff.clear();
                 SocketAddress address = ch.receive(buff);
                 work(address);
             }
@@ -98,11 +98,17 @@ public class Receiver extends ServerHandler {
         buff.flip();
 
         byte cmd = buff.get();
-        byte[] datagram = buff.remaining() == 0 ? new byte[0] : Protocol.toDatagram(buff);
+//        int version = buff.getInt(); //read in protocol method
 
         switch (cmd) {
             case Protocol.AUTH: {
+                byte[] datagram = buff.remaining() == 0 ? new byte[0] : Protocol.toDatagram(buff);
                 onAuth(address, new String(datagram));
+                break;
+            }
+            case Protocol.ACK: {
+                int version = buff.getInt();
+                onAck(address, buff);
                 break;
             }
             case Protocol.PING: {
@@ -115,6 +121,7 @@ public class Receiver extends ServerHandler {
                 break;
             }
             default: {
+                byte[] datagram = buff.remaining() == 0 ? new byte[0] : Protocol.toDatagram(buff);
                 onMessage(address, datagram);
             }
         }
@@ -148,29 +155,20 @@ public class Receiver extends ServerHandler {
         System.out.println("User " + session.getToken() + " said: '" + new String(datagram) + "'");
     }
     
+    public void onAck(SocketAddress address, ByteBuffer buff) {
+        UdpSession session = sessions.get(address);
+        if (session != null) {
+            long packetId = buff.getLong();
+            int num = buff.getInt();
+            session.ack(packetId, num);
+        }
+    }
+    
     public void onPing(SocketAddress address) throws IOException {
         buff.clear();
         buff.put(Protocol.PING);
         buff.flip();
         channel.send(buff, address);
-    }
-    
-    public void transmit() throws IOException {
-        long now = System.currentTimeMillis();
-        if (temp > now) {
-            return;
-        }
-
-        buff.clear();
-        buff.put(Protocol.FINAL_PACKAGE);
-        buff.put(".".getBytes());
-        for (SocketAddress address : sessions.keySet()) {
-            buff.flip();
-            channel.send(buff, address);
-        }
-
-        buff.clear();
-        temp = now + 3000;
     }
 
     @Override
