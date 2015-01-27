@@ -28,6 +28,23 @@ public class Protocol {
         return bytes;
     }
     
+    public static void ping(ByteBuffer buff, long time) {
+        buff.clear();
+        buff.put(PING);
+        buff.putInt(VERSION);
+        buff.putLong(time);
+        buff.flip();
+    }
+
+    public static void pong(ByteBuffer buff, long ping, long time) {
+        buff.clear();
+        buff.put(PONG);
+        buff.putInt(VERSION);
+        buff.putLong(ping);
+        buff.putLong(time);
+        buff.flip();
+    }
+    
     public static void write(ByteBuffer buff, byte ackCmd, byte ackNum, byte[] message) {
         buff.clear();
         buff.put(ackCmd);

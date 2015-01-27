@@ -97,12 +97,9 @@ public class Receiver extends ServerHandler {
                 break;
             }
             case Protocol.PING: {
-                try {
-                    Thread.sleep(25);
-                } catch (InterruptedException e) {
-
-                }
-                onPing(address);
+                int version = buff.getInt(); //read in protocol method
+                long ping = buff.getLong();
+                onPing(address, ping);
                 break;
             }
             default: {
@@ -149,10 +146,8 @@ public class Receiver extends ServerHandler {
         }
     }
     
-    public void onPing(SocketAddress address) throws IOException {
-        buff.clear();
-        buff.put(Protocol.PING);
-        buff.flip();
+    public void onPing(SocketAddress address, long time) throws IOException {
+        Protocol.pong(buff, time, System.currentTimeMillis());
         channel.send(buff, address);
     }
 

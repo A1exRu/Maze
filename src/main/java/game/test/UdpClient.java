@@ -6,8 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -15,8 +13,9 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class UdpClient {
 
@@ -34,14 +33,11 @@ public class UdpClient {
     private Selector selector;
 
     private Map<Long, Pack> packets = new HashMap<>();
-    private volatile Queue<Ack> acks = new ConcurrentLinkedQueue<Ack>();
+    private volatile Queue<Ack> acks = new ConcurrentLinkedQueue<>();
+    
+    private Map<Long, PingCallback> pingMap = new HashMap<>();
+    private Queue<Long> pingQueue = new ArrayBlockingQueue<>(4);
 
-    private boolean auth;
-    
-    private volatile String message;
-    private volatile byte type;
-    
-    private long pingTime;
     
     public UdpClient(String host, int port) {
         this.address = new InetSocketAddress(host, port);
@@ -61,28 +57,6 @@ public class UdpClient {
     public void start() {
         new Thread(() -> loop(this::receive)).start();
         new Thread(() -> loop(this::transmit)).start();
-
-        Scanner scanner = new Scanner(System.in);
-        stop: while (true) {
-            String next = scanner.nextLine();
-            switch (next) {
-                case ":q" : {
-                    close();
-                    break stop;
-                }
-                case ":ping": {
-                    message = "";
-                    type = Protocol.PING;
-                    break;
-                }
-                default: {
-                    message = next;
-                    type = Protocol.ACK;
-                }
-            }           
-        }
-        
-        terminated = true;
     }
     
     public void receive() {
@@ -96,30 +70,16 @@ public class UdpClient {
                     in.flip();
                     byte cmd = in.get();
                     int version = in.getInt();
-                    if (cmd == Protocol.PING) {
-                        long now = System.currentTimeMillis();
-                        System.out.println(now - pingTime);
-                        pingTime = -1;
-                        in.clear();
+                    if (cmd == Protocol.PONG) {
+                        long ping = in.getLong();
+                        long pong = in.getLong();
+                        PingCallback pingCallback = pingMap.get(ping);
+                        if (pingCallback != null) {
+                            pingCallback.call(ping, pong);
+                            pingMap.remove(ping);
+                        }
                     } else {
-                        int num = in.getInt();
-                        final long TEMP_PACK = 1l;
-                        Pack pack = packets.get(TEMP_PACK);
-                        if (pack == null) {
-                            pack = new Pack();
-                            pack.id = TEMP_PACK;
-                            packets.put(TEMP_PACK, pack);
-                        }
-
-                        byte[] datagram = new byte[in.remaining()];
-                        in.get(datagram);
-                        pack.put(num, datagram);
-                        if (cmd == Protocol.FINAL_PACKAGE) {
-                            pack.last = num;
-                        }
-
-                        acks.add(new Ack(TEMP_PACK, num));
-                        in.clear();    
+                        parseMessage(cmd);
                     }
                 }
             }
@@ -128,27 +88,60 @@ public class UdpClient {
             e.printStackTrace();
         }
     }
-    
+
+    private void parseMessage(byte cmd) {
+        int num = in.getInt();
+        final long TEMP_PACK = 1l;
+        Pack pack = packets.get(TEMP_PACK);
+        if (pack == null) {
+            pack = new Pack();
+            pack.id = TEMP_PACK;
+            packets.put(TEMP_PACK, pack);
+        }
+
+        byte[] datagram = new byte[in.remaining()];
+        in.get(datagram);
+        pack.put(num, datagram);
+        if (cmd == Protocol.FINAL_PACKAGE) {
+            pack.last = num;
+        }
+
+        acks.add(new Ack(TEMP_PACK, num));
+        in.clear();
+        if (pack.isReceive()) {
+//            onMessage(pack.toDatagram());
+        }
+    }
+
     public void transmit() {
-        if (message != null && type != 0) {
-            out.clear();
-            switch (type) {
-                case Protocol.PING: {
-                    pingTime = System.currentTimeMillis();
-                    out.put(type);
-                    break;
-                }
-                default: {
-                    if (!auth) {
-                        out.put(Protocol.AUTH);
-                    } else {
-                        out.put(Protocol.REFRESH);
-                        auth = true;
-                    }
-                    out.putInt(Protocol.VERSION);
-                    out.put(message.getBytes());
-                }
-            }
+//        if (message != null && type != 0) {
+//            out.clear();
+//            switch (type) {
+//                case Protocol.PING: {
+//                    Protocol.ping(out, System.currentTimeMillis());
+//                    
+//                    
+//                    pingTime = System.currentTimeMillis();
+//                    out.put(type);
+//                    break;
+//                }
+//                default: {
+//                    if (!auth) {
+//                        out.put(Protocol.AUTH);
+//                    } else {
+//                        out.put(Protocol.REFRESH);
+//                        auth = true;
+//                    }
+//                    out.putInt(Protocol.VERSION);
+//                    out.put(message.getBytes());
+//                }
+//            }
+//            send();
+//        }
+        
+        while (!pingQueue.isEmpty()) {
+            Long time = pingQueue.poll();
+            Protocol.ping(out, time);
             send();
         }
 
@@ -163,23 +156,25 @@ public class UdpClient {
             logger.debug("Ack pack {} num {}", ack.packId, ack.num);
         }
     }
+    
+    
+    public void ping(PingCallback callback) {
+        long now = System.currentTimeMillis();
+        pingMap.put(now, callback);
+        pingQueue.add(now);
+    }
 
     private void send() {
-        out.flip();
         try {
             channel.send(out, address);
             logger.info("Packet transmitted");
         } catch (IOException e) {
             logger.error("Transmit error", e);
         }
-
-        message = null;
-        type = 0;
     }
 
     private void loop(Runnable task) {
         while (!terminated) {
-//            System.out.println(task);
             try {
                 task.run();
             } catch (Exception e) {
@@ -221,6 +216,11 @@ public class UdpClient {
                 length += bytes.length;
             }
         }
+        
+        boolean isReceive() {
+            return (data.size() - 1) == last;
+            
+        }
     }
 
     public class Ack {
@@ -232,4 +232,9 @@ public class UdpClient {
             this.num = num;
         }
     }
+    
+    public static interface PingCallback {
+        void call(long ping, long pong);
+    }
+    
 }
