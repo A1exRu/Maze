@@ -4,13 +4,19 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -21,11 +27,14 @@ public class BubbleClient extends Application {
 
     private static final Duration TRANSLATE_DURATION = Duration.seconds(5.25);
     private HBox header;
+    private HBox configPanel;
     private UdpClient udpClient = new UdpClient("localhost", 9187);
     
     private Map<Long, Player> players = new ConcurrentHashMap<>();
-    private Group group;
+    private Group main;
+    private Group config;
     private Scene scene;
+    private Settings settings = new Settings();
 
     public static void main(String[] args) {
         launch(args);
@@ -37,14 +46,34 @@ public class BubbleClient extends Application {
         stage.setMaxHeight(400);
         stage.setResizable(false);
 
-        header = addHBox();
-        group = new Group(header);
-        scene = new Scene(group, 600, 400, Color.CORNSILK);
+        header = createHeader();
+        main = new Group(header);
+        scene = new Scene(main, 600, 400, Color.CORNSILK);
 
-        
         stage.setScene(scene);
         stage.show();
         udpClient.start();
+    }
+    
+    public void showConfig() {
+        Platform.runLater(() -> {
+            if (config == null) {
+                configPanel = settings.getPanel();
+                configPanel.setPadding(new Insets(15, 12, 15, 12));
+                configPanel.setSpacing(10);
+                config = new Group();
+            }
+
+            if (scene.getRoot() == main) {
+                config.getChildren().clear();
+                config.getChildren().addAll(header, configPanel);
+                scene.setRoot(config);
+            } else {
+                main.getChildren().clear();
+                main.getChildren().add(header);
+                scene.setRoot(main);
+            }
+        });
     }
 
     private Circle createCircle(double x, double y, Color color) {
@@ -97,7 +126,7 @@ public class BubbleClient extends Application {
             moveCircleOnMousePress(scene, circle);
             Player player = new Player(circle, transition);
             players.put(playerId, player);
-            group.getChildren().add(circle);
+            main.getChildren().add(circle);
         });
     }
     
@@ -110,7 +139,7 @@ public class BubbleClient extends Application {
         }
     }
 
-    public HBox addHBox() {
+    public HBox createHeader() {
         HBox hbox = new HBox();
         hbox.setPadding(new Insets(15, 12, 15, 12));
         hbox.setSpacing(10);
@@ -120,7 +149,12 @@ public class BubbleClient extends Application {
         messager.setTextFill(Color.WHITE);
 
         Button auth = new Button("Auth");
-        auth.setOnAction(e -> System.out.println("Auth"));
+        auth.setOnAction(e -> {
+            System.out.println(settings.host());
+            System.out.println(settings.port());
+            System.out.println(settings.token());
+
+        });
         auth.setPrefSize(100, 20);
 
         Button ping = new Button("Ping");
@@ -129,7 +163,11 @@ public class BubbleClient extends Application {
             long res = o - p;
             Platform.runLater(() -> messager.setText("Ping time: " + res));
         }));
-        hbox.getChildren().addAll(auth, ping, messager);
+        
+        Button conf = new Button("Settings");
+        conf.setPrefSize(100, 20);
+        conf.setOnAction(e -> showConfig());
+        hbox.getChildren().addAll(auth, ping, messager, conf);
 
         return hbox;
     }
@@ -143,7 +181,7 @@ public class BubbleClient extends Application {
             this.transition = transition;
         }
     }
-
+    
     @Override
     public void stop() throws Exception {
         super.stop();
