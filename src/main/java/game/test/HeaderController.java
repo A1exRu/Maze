@@ -1,5 +1,6 @@
 package game.test;
 
+import game.test.client.MessageHandler;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -9,6 +10,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -16,15 +18,36 @@ public class HeaderController {
     
     private static final UdpClient udpClient = BubbleClient.Context.udpClient;
     
+    private final String authToken = "token_" + System.currentTimeMillis();
+    private MessageHandler authHandler;
+    
     private Node settingsNode;
     private Collection<Node> prevNodes;
 
     @FXML
     private TextField notification;
+    
+    @FXML
+    private Pane header;
 
     @FXML
     public void onAuth(ActionEvent event) {
-        notification.setText("Auth button");
+        if (authHandler == null) {
+            authHandler = new MessageHandler() {
+                @Override
+                public int getCode() {
+                    return 1;
+                }
+
+                @Override
+                public void handle(ByteBuffer response) {
+                    final int status = response.getInt();
+                    Platform.runLater(() -> notification.setText("Auth status: " + status));
+                }
+            };
+            udpClient.addMessageHandler(authHandler);
+        }
+        udpClient.auth(authToken);
     }
     
     @FXML

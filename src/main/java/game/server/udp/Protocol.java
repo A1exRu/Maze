@@ -45,11 +45,20 @@ public class Protocol {
         buff.flip();
     }
     
-    public static void write(ByteBuffer buff, byte ackCmd, byte ackNum, byte[] message) {
+    public static void auth(ByteBuffer buff, String token) {
         buff.clear();
-        buff.put(ackCmd);
+        buff.put(AUTH);
         buff.putInt(VERSION);
-        buff.putInt(ackNum);
+        buff.put(token.getBytes());
+        buff.flip();
+    }
+    
+    public static void write(ByteBuffer buff, long packId, byte cmd, byte num, byte[] message) {
+        buff.clear();
+        buff.put(cmd);
+        buff.putInt(VERSION);
+        buff.putLong(packId);
+        buff.putInt(num);
         buff.put(message);
         buff.flip();
     }

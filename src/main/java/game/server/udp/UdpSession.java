@@ -61,7 +61,7 @@ public class UdpSession {
                 for (byte i = 0; i < datagrams.length; i++) {
                     byte[] datagram = datagrams[i];
                     byte cmd = (i == datagrams.length - 1) ? Protocol.FINAL_PACKAGE : Protocol.PACKAGE; 
-                    Protocol.write(buff, cmd, i, datagram);
+                    Protocol.write(buff, packet.id, cmd, i, datagram);
                     channel.send(buff, address);
                 }
                 

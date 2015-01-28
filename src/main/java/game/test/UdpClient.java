@@ -2,6 +2,8 @@ package game.test;
 
 import game.server.udp.Packet;
 import game.server.udp.Protocol;
+import game.test.client.MessageHandler;
+import game.test.client.MessageManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,8 @@ public class UdpClient {
     
     private InetSocketAddress address;
     private int port;
+    
+    private MessageManager manager = new MessageManager();
 
     private boolean terminated;
     
@@ -38,7 +42,8 @@ public class UdpClient {
     private final Map<Long, PingCallback> pingMap = new HashMap<>();
     private final Queue<Long> pingQueue = new ArrayBlockingQueue<>(4);
 
-    
+    private final Queue<Word> words = new ArrayBlockingQueue<>(100);
+
     public UdpClient(String host, int port) {
         this.address = new InetSocketAddress(host, port);
         this.port = port;
@@ -90,13 +95,13 @@ public class UdpClient {
     }
 
     private void parseMessage(byte cmd) {
+        final long paketId = in.getLong();
         int num = in.getInt();
-        final long TEMP_PACK = 1l;
-        Pack pack = packets.get(TEMP_PACK);
+        Pack pack = packets.get(paketId);
         if (pack == null) {
             pack = new Pack();
-            pack.id = TEMP_PACK;
-            packets.put(TEMP_PACK, pack);
+            pack.id = paketId;
+            packets.put(paketId, pack);
         }
 
         byte[] datagram = new byte[in.remaining()];
@@ -106,42 +111,24 @@ public class UdpClient {
             pack.last = num;
         }
 
-        acks.add(new Ack(TEMP_PACK, num));
+        acks.add(new Ack(paketId, num));
         in.clear();
         if (pack.isReceive()) {
-//            onMessage(pack.toDatagram());
+            manager.onMessage(pack.toDatagram());
+            packets.remove(paketId);
         }
     }
 
     public void transmit() {
-//        if (message != null && type != 0) {
-//            out.clear();
-//            switch (type) {
-//                case Protocol.PING: {
-//                    Protocol.ping(out, System.currentTimeMillis());
-//                    
-//                    
-//                    pingTime = System.currentTimeMillis();
-//                    out.put(type);
-//                    break;
-//                }
-//                default: {
-//                    if (!auth) {
-//                        out.put(Protocol.AUTH);
-//                    } else {
-//                        out.put(Protocol.REFRESH);
-//                        auth = true;
-//                    }
-//                    out.putInt(Protocol.VERSION);
-//                    out.put(message.getBytes());
-//                }
-//            }
-//            send();
-//        }
-        
         while (!pingQueue.isEmpty()) {
             Long time = pingQueue.poll();
             Protocol.ping(out, time);
+            send();
+        }
+
+        while (!words.isEmpty()) {
+            Word word = words.poll();
+            word.tell();
             send();
         }
 
@@ -152,11 +139,11 @@ public class UdpClient {
             out.putInt(Protocol.VERSION);
             out.putLong(ack.packId);
             out.putInt(ack.num);
+            out.flip();
             send();
             logger.debug("Ack pack {} num {}", ack.packId, ack.num);
         }
     }
-    
     
     public void ping(PingCallback callback) {
         long now = System.currentTimeMillis();
@@ -164,6 +151,10 @@ public class UdpClient {
         pingQueue.add(now);
     }
 
+    public void auth(final String token) {
+        words.add(() -> Protocol.auth(out, token));
+    }
+    
     private void send() {
         try {
             channel.send(out, address);
@@ -222,6 +213,10 @@ public class UdpClient {
             
         }
     }
+    
+    public void addMessageHandler(MessageHandler handler) {
+        manager.register(handler);
+    }
 
     public class Ack {
         long packId;
@@ -235,6 +230,10 @@ public class UdpClient {
     
     public static interface PingCallback {
         void call(long ping, long pong);
+    }
+    
+    public static interface Word {
+        void tell();
     }
     
 }

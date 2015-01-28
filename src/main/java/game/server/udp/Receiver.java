@@ -110,9 +110,13 @@ public class Receiver extends ServerHandler {
     }
     
     public void onAuth(SocketAddress address, String token) {
-        if (true) { //validate token
+        if (true && !sessions.containsKey(token)) { //validate token
             UdpSession session = new UdpSession(token, address);
             sessions.put(address, session);
+            ByteBuffer resp = ByteBuffer.allocate(8);
+            resp.putInt(1);
+            resp.putInt(1);
+            session.send(new Packet(address, resp.array()));
             sessionThreshold = session.getTimeout();
         }
         
