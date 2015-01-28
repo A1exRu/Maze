@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.shape.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane fx:id="root" fx:controller="game.test.SettingsController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="800.0" minWidth="10.0" prefWidth="400.0" />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints maxHeight="128.0" minHeight="10.0" prefHeight="54.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="498.0" minHeight="10.0" prefHeight="498.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="132.0" minHeight="10.0" prefHeight="46.0" vgrow="SOMETIMES" />
+    </rowConstraints>
+    <children>
+        <Pane prefHeight="498.0" prefWidth="800.0">
+            <children>
+                <Label layoutX="89.0" layoutY="44.0" text="Host:" />
+                <Label layoutX="89.0" layoutY="82.0" text="Port:" />
+                <TextField layoutX="136.0" layoutY="78.0" />
+                <TextField layoutX="136.0" layoutY="40.0" />
+            </children>
+        </Pane>
+    </children>
+</GridPane>

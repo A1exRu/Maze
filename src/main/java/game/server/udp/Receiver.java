@@ -36,7 +36,7 @@ public class Receiver extends ServerHandler {
         try {
             selector = Selector.open();
             channel.configureBlocking(false);
-            channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+            channel.register(selector, SelectionKey.OP_READ);
         } catch (IOException e) {
             logger.error("Initialization error", e);
         }

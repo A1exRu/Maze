@@ -17,6 +17,9 @@ public class UdpServerRunner {
             if (":q".equals(next)) {
                 server.stop();
                 break;
+            } else if (":status".equals(next)) {
+                System.out.println("Server running");
+                break;
             }
         }
     }

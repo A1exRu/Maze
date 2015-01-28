@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.shape.*?>
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<Pane fx:controller="game.test.HeaderController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="65.0" prefWidth="820.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Pane fx:id="header" prefHeight="55.0" prefWidth="820.0" style="-fx-background-color: #eee;">
+         <children>
+            <Button layoutX="15.0" layoutY="15.0" mnemonicParsing="false" text="Auth" onAction="#onAuth" />
+            <Button layoutX="61.0" layoutY="15.0" mnemonicParsing="false" text="Ping" onAction="#onPing"/>
+            <Button layoutX="105.0" layoutY="15.0" mnemonicParsing="false" text="Settings" onAction="#onSettings"/>
+         </children>
+      </Pane>
+      <Pane fx:id="footer" disable="true" prefHeight="26.0" prefWidth="800.0" layoutX="0.0" layoutY="564.0" style="-fx-background-color: f5f5f5;" GridPane.rowIndex="2">
+         <children>
+            <TextField fx:id="notification" disable="true" editable="false" layoutX="20.0" layoutY="11.0" prefHeight="25.0" prefWidth="770.0" />
+         </children>
+      </Pane>
+   </children>
+</Pane>

@@ -32,11 +32,11 @@ public class UdpClient {
     private DatagramChannel channel;
     private Selector selector;
 
-    private Map<Long, Pack> packets = new HashMap<>();
-    private volatile Queue<Ack> acks = new ConcurrentLinkedQueue<>();
+    private final Map<Long, Pack> packets = new HashMap<>();
+    private final Queue<Ack> acks = new ConcurrentLinkedQueue<>();
     
-    private Map<Long, PingCallback> pingMap = new HashMap<>();
-    private Queue<Long> pingQueue = new ArrayBlockingQueue<>(4);
+    private final Map<Long, PingCallback> pingMap = new HashMap<>();
+    private final Queue<Long> pingQueue = new ArrayBlockingQueue<>(4);
 
     
     public UdpClient(String host, int port) {
