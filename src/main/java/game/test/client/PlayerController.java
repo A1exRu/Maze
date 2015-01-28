@@ -2,11 +2,15 @@ package game.test.client;
 
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.scene.Scene;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,6 +18,47 @@ public class PlayerController {
 
     private static final Duration TRANSLATE_DURATION = Duration.seconds(5.25);
     private Map<Long, Player> players = new ConcurrentHashMap<>();
+    
+    @FXML
+    private Pane battlefield;
+    
+    public PlayerController() {
+        Context.udpClient.addMessageHandler(new MessageHandler() {
+            @Override
+            public int getCode() {
+                return 2;
+            }
+
+            @Override
+            public void handle(ByteBuffer response) {
+                Circle circle = createCircle(50, 50, Color.RED);
+                final TranslateTransition transition = createTranslateTransition(circle);
+                Player player = new Player(circle, transition);
+                players.put(1L, player);
+                battlefield.getChildren().add(circle);
+
+//                moveCircleOnKeyPress(scene, circle, transition);
+//                moveCircleOnMousePress(scene, circle, transition);
+            }
+        });
+    }
+    
+    public void onClick(MouseEvent event) {
+        double x = event.getX();
+        double y = event.getY();
+        System.out.println(x + "x" + y);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
     private Circle createCircle(double x, double y, Color color) {
         final Circle circle = new Circle(x, y, 25, color);

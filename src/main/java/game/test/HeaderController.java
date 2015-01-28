@@ -1,5 +1,6 @@
 package game.test;
 
+import game.test.client.Context;
 import game.test.client.MessageHandler;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -16,9 +17,8 @@ import java.util.Collection;
 
 public class HeaderController {
     
-    private static final UdpClient udpClient = BubbleClient.Context.udpClient;
+    private static final UdpClient udpClient = Context.udpClient;
     
-    private final String authToken = "token_" + System.currentTimeMillis();
     private MessageHandler authHandler;
     
     private Node settingsNode;
@@ -26,9 +26,6 @@ public class HeaderController {
 
     @FXML
     private TextField notification;
-    
-    @FXML
-    private Pane header;
 
     @FXML
     public void onAuth(ActionEvent event) {
@@ -47,7 +44,7 @@ public class HeaderController {
             };
             udpClient.addMessageHandler(authHandler);
         }
-        udpClient.auth(authToken);
+        udpClient.auth(Context.authToken);
     }
     
     @FXML
@@ -60,7 +57,7 @@ public class HeaderController {
 
     @FXML
     public void onSettings(ActionEvent event) throws IOException {
-        Pane main = (Pane)((Node) event.getSource()).getScene().lookup("#battlefield");
+        Pane main = (Pane)((Node) event.getSource()).getScene().lookup("#main");
         if (prevNodes == null) {
             prevNodes = new ArrayList<>(main.getChildren());
             main.getChildren().clear();

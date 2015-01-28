@@ -5,7 +5,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<GridPane fx:controller="game.test.client.PlayerController" fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" maxWidth="800.0" minWidth="10.0" prefWidth="400.0" />
   </columnConstraints>
@@ -16,8 +16,14 @@
   </rowConstraints>
    <children>
       <fx:include source="header.fxml"/>
-      <Pane fx:id="battlefield" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1">
+      <Pane fx:id="main" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1">
+          <children>
+              <Pane fx:id="battlefield" prefHeight="498.0" prefWidth="800.0" onMouseClicked="#onClick">
+                  <children>
 
+                  </children>
+              </Pane>
+          </children>
       </Pane>
    </children>
 </GridPane>

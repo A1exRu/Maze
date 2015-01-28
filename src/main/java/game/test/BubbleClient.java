@@ -1,5 +1,6 @@
 package game.test;
 
+import game.test.client.Context;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -29,9 +30,5 @@ public class BubbleClient extends Application {
     public void stop() throws Exception {
         super.stop();
         Context.udpClient.close();
-    }
-    
-    public static class Context {
-        public static final UdpClient udpClient = new UdpClient("localhost", 9187);
     }
 }
