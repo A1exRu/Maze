@@ -16,9 +16,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Receiver extends ServerHandler {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(Receiver.class);
-    
+    public static final long FAKE_PLAYER_ID = 1L;
+
     private final ByteBuffer buff = ByteBuffer.allocate(4096);
     public static final Map<SocketAddress, UdpSession> sessions = new ConcurrentHashMap<>();
     
@@ -103,8 +104,9 @@ public class Receiver extends ServerHandler {
                 break;
             }
             default: {
-                byte[] datagram = buff.remaining() == 0 ? new byte[0] : Protocol.toDatagram(buff);
-                onMessage(address, datagram);
+                int version = buff.getInt();
+//                byte[] datagram = buff.remaining() == 0 ? new byte[0] : Protocol.toDatagram(buff);
+                onMessage(address);
             }
         }
     }
@@ -117,12 +119,13 @@ public class Receiver extends ServerHandler {
             resp.putInt(1);
             resp.putInt(1);
             session.send(new Packet(address, resp.array()));
+            session.send(new Packet(address, getSingleBubbleInit()));
             sessionThreshold = session.getTimeout();
         }
         
     }
     
-    public void onMessage(SocketAddress address, byte[] datagram) {
+    public void onMessage(SocketAddress address) {
         UdpSession session = sessions.get(address);
         if (session == null) {
             logger.error("Session not found by address {}", address);
@@ -136,9 +139,23 @@ public class Receiver extends ServerHandler {
 
         long timeout = session.prolong();
         sessionThreshold = Math.min(sessionThreshold, timeout);
+        int type = buff.getInt();
+        if (type == 3) {
+            ByteBuffer resp = ByteBuffer.allocate(28);
+            long playerId = buff.getLong();
+            double dx = buff.getDouble();
+            double dy = buff.getDouble();
+            resp.putInt(3);
+            resp.putLong(playerId);
+            resp.putDouble(dx);
+            resp.putDouble(dy);
 
-        //TODO: complete implementation
-        System.out.println("User " + session.getToken() + " said: '" + new String(datagram) + "'");
+            for (UdpSession udpSession : sessions.values()) {
+                udpSession.send(new Packet(session.getAddress(), resp.array()));
+            }
+        } else {
+            logger.warn("Invalid command type {}", type);
+        }
     }
     
     public void onAck(SocketAddress address, ByteBuffer buff) {
@@ -153,6 +170,20 @@ public class Receiver extends ServerHandler {
     public void onPing(SocketAddress address, long time) throws IOException {
         Protocol.pong(buff, time, System.currentTimeMillis());
         channel.send(buff, address);
+    }
+    
+    //TEST METHOD
+    private byte[] getSingleBubbleInit() {
+        ByteBuffer buffer = ByteBuffer.allocate(40);
+        buffer.putInt(2); //message code
+        buffer.putLong(FAKE_PLAYER_ID); //playerId
+        buffer.putInt(200); //x
+        buffer.putInt(200); //y
+        buffer.putInt(255); //red
+        buffer.putInt(0); //green
+        buffer.putInt(80); //blue
+        buffer.putDouble(0.7); //opacity
+        return buffer.array();
     }
 
     @Override

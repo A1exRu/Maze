@@ -155,6 +155,10 @@ public class UdpClient {
         words.add(() -> Protocol.auth(out, token));
     }
     
+    public void send(byte[] data) {
+        words.add(() -> Protocol.send(out, data));
+    }
+    
     private void send() {
         try {
             channel.send(out, address);

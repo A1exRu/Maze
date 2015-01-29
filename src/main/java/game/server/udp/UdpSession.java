@@ -74,6 +74,10 @@ public class UdpSession {
         return token;
     }
 
+    public SocketAddress getAddress() {
+        return address;
+    }
+
     public long getTimeout() {
         return timeout;
     }

@@ -23,32 +23,26 @@ public class PlayerController {
     private Pane battlefield;
     
     public PlayerController() {
-        Context.udpClient.addMessageHandler(new MessageHandler() {
-            @Override
-            public int getCode() {
-                return 2;
-            }
-
-            @Override
-            public void handle(ByteBuffer response) {
-                Circle circle = createCircle(50, 50, Color.RED);
-                final TranslateTransition transition = createTranslateTransition(circle);
-                Player player = new Player(circle, transition);
-                players.put(1L, player);
-                battlefield.getChildren().add(circle);
-
-//                moveCircleOnKeyPress(scene, circle, transition);
-//                moveCircleOnMousePress(scene, circle, transition);
-            }
-        });
+        Context.udpClient.addMessageHandler(new AuthHandler());
+        Context.udpClient.addMessageHandler(new MoveHandler());
     }
     
     public void onClick(MouseEvent event) {
         double x = event.getX();
         double y = event.getY();
         System.out.println(x + "x" + y);
+        ByteBuffer buff = ByteBuffer.allocate(28);
+        buff.putInt(3);
+        buff.putLong(1L);
+        buff.putDouble(x);
+        buff.putDouble(y);
+        Context.udpClient.send(buff.array());
     }
     
+    public void onMove() {
+        
+        
+    }
     
     
     
@@ -121,12 +115,55 @@ public class PlayerController {
         });
     }
 
-    public void move(long playerId, double x, double y, double cx, double cy) {
+    public void move(long playerId, double dx, double dy) {
         Player player = players.get(playerId);
         if (player != null) {
-            player.transition.setToX(x - cx);
-            player.transition.setToY(y - cy);
+            player.transition.setToX(dx - player.circle.getCenterX());
+            player.transition.setToY(dy - player.circle.getCenterY());
             player.transition.playFromStart();
+        }
+    }
+    
+    private class AuthHandler implements MessageHandler {
+        @Override
+        public int getCode() {
+            return 2;
+        }
+
+        @Override
+        public void handle(ByteBuffer response) {
+            long playerId = response.getLong();
+            int x = response.getInt();
+            int y = response.getInt();
+            int red = response.getInt();
+            int green = response.getInt();
+            int blue = response.getInt();
+            double opacity = response.getDouble();
+
+            Color color = Color.rgb(red, green, blue, opacity);
+            Circle circle = createCircle(x, y, color);
+            final TranslateTransition transition = createTranslateTransition(circle);
+            Player player = new Player(circle, transition);
+            players.put(playerId, player);
+            Platform.runLater(() -> battlefield.getChildren().add(circle));
+
+//                moveCircleOnKeyPress(scene, circle, transition);
+//                moveCircleOnMousePress(scene, circle, transition);
+        }
+    }
+    
+    private class MoveHandler implements MessageHandler {
+        @Override
+        public int getCode() {
+            return 3;
+        }
+
+        @Override
+        public void handle(ByteBuffer response) {
+            long playerId = response.getLong();
+            double dx = response.getDouble();
+            double dy = response.getDouble();
+            move(playerId, dx, dy);
         }
     }
     

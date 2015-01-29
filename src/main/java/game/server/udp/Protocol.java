@@ -63,4 +63,12 @@ public class Protocol {
         buff.flip();
     }
 
+    public static void send(ByteBuffer buff, byte[] message) {
+        buff.clear();
+        buff.put(FINAL_PACKAGE);
+        buff.putInt(VERSION);
+        buff.put(message);
+        buff.flip();
+    }
+
 }
