@@ -10,10 +10,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Receiver extends ServerHandler {
 
@@ -21,7 +21,7 @@ public class Receiver extends ServerHandler {
     public static final long FAKE_PLAYER_ID = 1L;
 
     private final ByteBuffer buff = ByteBuffer.allocate(4096);
-    public static final Map<SocketAddress, UdpSession> sessions = new ConcurrentHashMap<>();
+    public static final Map<SocketAddress, UdpSession> sessions = new HashMap<>();
     
     private long sessionThreshold = Long.MAX_VALUE;
     

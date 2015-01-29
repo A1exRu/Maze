@@ -11,13 +11,13 @@ import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerController {
 
     private static final Duration TRANSLATE_DURATION = Duration.seconds(5.25);
-    private Map<Long, Player> players = new ConcurrentHashMap<>();
+    private Map<Long, Player> players = new HashMap<>();
     
     @FXML
     private Pane battlefield;

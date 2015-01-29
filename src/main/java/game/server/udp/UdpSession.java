@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class UdpSession {
     
@@ -20,7 +20,7 @@ public class UdpSession {
 //    private final long gameId;
 //    private final long heroId;
     
-    private Map<Long, Packet> packets = new ConcurrentHashMap<>();
+    private Map<Long, Packet> packets = new HashMap<>();
     
     private long timeout;
 
