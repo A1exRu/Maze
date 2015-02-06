@@ -8,24 +8,23 @@ import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
-import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class CommandProcessor {
 
     private static final Logger LOG = LoggerFactory.getLogger(RequestHandler.class);
+    
     private Map<Byte, CommandHandler> handlers = new HashMap<>();
     private final BitSet authRequirements = new BitSet();
-    private final CommandHandler defaultHandler;
-    private final boolean defaultRequirment;
-    final Map<UUID, UdpSession> sessions = new HashMap<>();
     
+    private final CommandHandler defaultHandler;
+    private final boolean defaultRequirement;
+    
+    final Map<UUID, UdpSession> sessions = new HashMap<>();
+
     public CommandProcessor(CommandHandler defaultHandler, boolean authRequirements) {
         this.defaultHandler = defaultHandler;
-        this.defaultRequirment = authRequirements;
-        
+        this.defaultRequirement = authRequirements;
     }
 
     public void add(byte cmd, CommandHandler handler, boolean authRequired) {
@@ -41,34 +40,46 @@ public class CommandProcessor {
     public void process(SocketAddress address, ByteBuffer buff) {
         byte command = Protocol.getCommand(buff);
         boolean supported = handlers.containsKey(command);
-        boolean authRequired = supported ? authRequirements.get(command) : defaultRequirment;
+        boolean authRequired = supported ? authRequirements.get(command) : defaultRequirement;
 
-        if (authRequired && !validate(address, buff)) {
-            return;
+        UUID sessionUuid = null;
+        if (authRequired) {
+            sessionUuid = Protocol.getToken(buff);
+            if (!checkSession(address, sessionUuid)) {
+                return;
+            }
         }
         
         CommandHandler handler = supported ? handlers.get(command) : defaultHandler;
-        handler.handle(address, buff);
+        handler.handle(address, buff, sessionUuid);
     }
     
-    private boolean validate(SocketAddress address, ByteBuffer buff) {
-        UUID token = Protocol.getToken(buff);
-        UdpSession session = sessions.get(token);
+    private boolean checkSession(SocketAddress address, UUID sessionUuid) {
+        UdpSession session = sessions.get(sessionUuid);
         if (session == null) {
-            LOG.warn("Session not found");
+            LOG.warn("Session {} not found", sessionUuid);
             return false;
         }
         
         if (!address.equals(session.getAddress())) {
-            LOG.error("Token received from another address");
+            LOG.error("Token received from another address. Expected: {}, Actual: {}", session.getAddress(), address);
             return false;
         }
         
-//        if (!session.isAlive()) {
-//            LOG.warn("Session expired");
-//        }
-        
+        if (!session.isAlive()) {
+            LOG.warn("Session expired {}", session.getAddress());
+            return false;
+        }
+
+        session.prolong();
         return true;
     }
     
+    public void validate() {
+        Collection<CommandHandler> values = handlers.values();
+        long count = values.stream().map(handler -> handler.getClass()).distinct().count();
+        if (values.size() != count) {
+            throw new IllegalStateException("Same handlers mapped for different commands");
+        }
+    }
 }

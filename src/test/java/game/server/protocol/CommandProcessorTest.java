@@ -13,9 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CommandProcessorTest {
@@ -37,9 +35,9 @@ public class CommandProcessorTest {
         Protocol.auth(buff, UUID.randomUUID());
         
         processor.process(address, buff);
-        verify(authCmd).handle(address, buff);
-        verify(handler, never()).handle(address, buff);
-        verify(ackCmd, never()).handle(address, buff);
+        verify(authCmd).handle(address, buff, null);
+        verify(handler, never()).handle(address, buff, null);
+        verify(ackCmd, never()).handle(address, buff, null);
     }
     
     @Test
@@ -49,7 +47,7 @@ public class CommandProcessorTest {
         Protocol.auth(buff, UUID.randomUUID());
         CommandProcessor processor = new CommandProcessor(handler, false);
         processor.process(address, buff);
-        verify(handler).handle(address, buff);
+        verify(handler).handle(address, buff, null);
     }
 
     @Test
@@ -66,9 +64,9 @@ public class CommandProcessorTest {
         processor.sessions.put(token, new UdpSession(token, address));
 
         processor.process(address, buff);
-        verify(handler, never()).handle(address, buff);
-        verify(authCmd, never()).handle(address, buff);
-        verify(ackCmd, times(1)).handle(address, buff);
+        verify(handler, never()).handle(address, buff, token);
+        verify(authCmd, never()).handle(address, buff, token);
+        verify(ackCmd, times(1)).handle(address, buff, token);
         
         assertEquals(21, buff.position());
         assertEquals(12, buff.remaining());
@@ -84,7 +82,7 @@ public class CommandProcessorTest {
         processor.sessions.put(token, new UdpSession(token, address));
 
         processor.process(address, buff);
-        verify(handler, times(1)).handle(address, buff);
+        verify(handler, times(1)).handle(address, buff, token);
     }
 
     @Test
@@ -101,9 +99,9 @@ public class CommandProcessorTest {
         Protocol.auth(buff, uuid);
 
         processor.process(address, buff);
-        verify(handler, never()).handle(address, buff);
-        verify(authCmd, never()).handle(address, buff);
-        verify(ackCmd, never()).handle(address, buff);
+        verify(handler, never()).handle(address, buff, uuid);
+        verify(authCmd, never()).handle(address, buff, uuid);
+        verify(ackCmd, never()).handle(address, buff, uuid);
     }
 
     @Test
@@ -121,9 +119,9 @@ public class CommandProcessorTest {
 
         SocketAddress anotherAddress = Mockito.mock(SocketAddress.class);
         processor.process(anotherAddress, buff);
-        verify(handler, never()).handle(address, buff);
-        verify(authCmd, never()).handle(address, buff);
-        verify(ackCmd, never()).handle(address, buff);
+        verify(handler, never()).handle(address, buff, token);
+        verify(authCmd, never()).handle(address, buff, token);
+        verify(ackCmd, never()).handle(address, buff, token);
 
         assertEquals(21, buff.position());
         assertEquals(12, buff.remaining());
@@ -138,7 +136,7 @@ public class CommandProcessorTest {
         Protocol.auth(buff, uuid);
 
         processor.process(address, buff);
-        verify(handler, never()).handle(address, buff);
+        verify(handler, never()).handle(address, buff, uuid);
     }
     
     
@@ -149,6 +147,49 @@ public class CommandProcessorTest {
         processor.add(Protocol.AUTH, authCmd, false);
         processor.add(Protocol.ACK, authCmd, false);
         processor.add(Protocol.AUTH, authCmd, false);
+    }
+
+    @Test
+    public void testValidate() throws Exception {
+        CommandProcessor processor = new CommandProcessor(null, false);
+        CommandHandler authCmd = Mockito.mock(CommandHandler.class);
+        processor.add(Protocol.AUTH, authCmd, false);
+        processor.add(Protocol.ACK, (a,b,c) -> {}, false);
+        processor.validate();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testValidateFailed() throws Exception {
+        CommandProcessor processor = new CommandProcessor(null, false);
+        CommandHandler authCmd = Mockito.mock(CommandHandler.class);
+        processor.add(Protocol.AUTH, authCmd, false);
+        processor.add(Protocol.ACK, authCmd, false);
+        processor.validate();
+    }
+    
+    @Test
+    public void testInvalidatedSession() {
+        CommandProcessor processor = new CommandProcessor(handler, true);
+        CommandHandler authCmd = Mockito.mock(CommandHandler.class);
+        CommandHandler ackCmd = Mockito.mock(CommandHandler.class);
+        processor.add(Protocol.AUTH, authCmd, false);
+        processor.add(Protocol.ACK, ackCmd, true);
+
+        SocketAddress address = Mockito.mock(SocketAddress.class);
+        UUID token = UUID.randomUUID();
+        ByteBuffer buff = getAck(token);
+        
+        UdpSession session = Mockito.spy(new UdpSession(token, address));
+        when(session.isAlive()).thenReturn(false);
+        processor.sessions.put(token, session);
+
+        processor.process(address, buff);
+        verify(handler, never()).handle(address, buff, token);
+        verify(authCmd, never()).handle(address, buff, token);
+        verify(ackCmd, never()).handle(address, buff, token);
+
+        assertEquals(21, buff.position());
+        assertEquals(12, buff.remaining());
     }
 
     private ByteBuffer getAck(UUID token) {

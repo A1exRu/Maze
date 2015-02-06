@@ -6,5 +6,5 @@ public class FRefresh {
     
     private long gameId;
     private Hero hero;
-    
+
 }
