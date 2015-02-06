@@ -10,10 +10,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Receiver extends ServerHandler {
 
@@ -88,8 +85,8 @@ public class Receiver extends ServerHandler {
 
         switch (cmd) {
             case Protocol.AUTH: {
-                byte[] datagram = buff.remaining() == 0 ? new byte[0] : Protocol.toDatagram(buff);
-                onAuth(address, new String(datagram));
+                UUID token = Protocol.getToken(buff);
+                onAuth(address, token);
                 break;
             }
             case Protocol.ACK: {
@@ -111,7 +108,7 @@ public class Receiver extends ServerHandler {
         }
     }
     
-    public void onAuth(SocketAddress address, String token) {
+    public void onAuth(SocketAddress address, UUID token) {
         if (true && !sessions.containsKey(token)) { //validate token
             UdpSession session = new UdpSession(token, address);
             sessions.put(address, session);

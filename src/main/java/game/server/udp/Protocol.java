@@ -1,6 +1,7 @@
 package game.server.udp;
 
 import java.nio.ByteBuffer;
+import java.util.UUID;
 
 public class Protocol {
     
@@ -15,6 +16,26 @@ public class Protocol {
     public static final byte PONG = 9;
 
     public static final int VERSION = 1;
+    
+    public static byte getCommand(ByteBuffer buff) {
+        byte cmd = buff.get();
+        int version = buff.getInt();
+        if (version != VERSION) {
+            throw new IllegalArgumentException("Protocol version not supported");
+        }
+        
+        return cmd;
+    }
+    
+    public static UUID getToken(ByteBuffer buff) {
+        if (buff.remaining() < 16) {
+            return null;
+        }
+        
+        long most = buff.getLong();
+        long least = buff.getLong();
+        return new UUID(most, least);
+    }
 
     public static byte[] toDatagram(ByteBuffer buff) {
         int v = buff.getInt();
@@ -45,11 +66,12 @@ public class Protocol {
         buff.flip();
     }
     
-    public static void auth(ByteBuffer buff, String token) {
+    public static void auth(ByteBuffer buff, UUID token) {
         buff.clear();
         buff.put(AUTH);
         buff.putInt(VERSION);
-        buff.put(token.getBytes());
+        buff.putLong(token.getMostSignificantBits());
+        buff.putLong(token.getLeastSignificantBits());
         buff.flip();
     }
     

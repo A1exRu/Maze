@@ -150,7 +150,7 @@ public class UdpClient {
         pingQueue.add(now);
     }
 
-    public void auth(final String token) {
+    public void auth(final UUID token) {
         words.add(() -> Protocol.auth(out, token));
     }
     

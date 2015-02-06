@@ -9,13 +9,14 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class UdpSession {
     
     private static final Logger logger = LoggerFactory.getLogger(UdpSession.class);
     public static long SESSION_TIMEOUT = 300000; //5 min
     
-    private final String token;
+    private final UUID token;
     private final SocketAddress address;
 //    private final long gameId;
 //    private final long heroId;
@@ -24,7 +25,7 @@ public class UdpSession {
     
     private long timeout;
 
-    public UdpSession(String token, SocketAddress address) {
+    public UdpSession(UUID token, SocketAddress address) {
         this.token = token;
         this.address = address;
         prolong();
@@ -70,7 +71,7 @@ public class UdpSession {
         }
     }
 
-    public String getToken() {
+    public UUID getToken() {
         return token;
     }
 

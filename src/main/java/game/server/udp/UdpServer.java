@@ -1,7 +1,7 @@
 package game.server.udp;
 
-import game.server.Game;
 import game.server.ServerContext;
+import game.server.protocol.CommandProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,8 +16,8 @@ public class UdpServer {
 
     private static final Logger logger = LoggerFactory.getLogger(UdpServer.class);
 
+    private final ThreadGroup group = new ThreadGroup("UdpServer");
     private final ServerContext context = new ServerContext();
-
     private int port;
 
     private Receiver receiver;
@@ -32,31 +32,21 @@ public class UdpServer {
         socket = channel.socket();
         SocketAddress address = new InetSocketAddress(port);
         socket.bind(address);
+        
 
         receiver = new Receiver(channel);
         transmitter = new Transmitter(channel);
     }
 
     public void start() {
-        new Thread(receiver).start();
-        new Thread(transmitter).start();
-    }
-
-    public void auth() {
-
-    }
-
-    public void send() {
-
-    }
-
-    public void receive(ByteBuffer buff) throws IOException {
-
+        new Thread(group, receiver).start();
+        new Thread(group, transmitter).start();
     }
 
     public void stop() throws IOException {
         receiver.stop();
         transmitter.stop();
+        group.destroy();
         socket.close();
         channel.close();
         logger.info("Server stopped");
