@@ -1,8 +1,7 @@
 package game.server.protocol;
 
-import game.server.RequestHandler;
 import game.server.udp.Protocol;
-import game.server.udp.UdpSession;
+import game.server.udp.SessionsHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +11,7 @@ import java.util.*;
 
 public class CommandProcessor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RequestHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CommandProcessor.class);
     
     private Map<Byte, CommandHandler> handlers = new HashMap<>();
     private final BitSet authRequirements = new BitSet();
@@ -20,9 +19,10 @@ public class CommandProcessor {
     private final CommandHandler defaultHandler;
     private final boolean defaultRequirement;
     
-    final Map<UUID, UdpSession> sessions = new HashMap<>();
+    private final SessionsHolder sessionsHolder;
 
-    public CommandProcessor(CommandHandler defaultHandler, boolean authRequirements) {
+    public CommandProcessor(SessionsHolder sessionsHolder, CommandHandler defaultHandler, boolean authRequirements) {
+        this.sessionsHolder = sessionsHolder;
         this.defaultHandler = defaultHandler;
         this.defaultRequirement = authRequirements;
     }
@@ -45,34 +45,13 @@ public class CommandProcessor {
         UUID sessionUuid = null;
         if (authRequired) {
             sessionUuid = Protocol.getToken(buff);
-            if (!checkSession(address, sessionUuid)) {
+            if (!sessionsHolder.checkSession(address, sessionUuid)) {
                 return;
             }
         }
         
         CommandHandler handler = supported ? handlers.get(command) : defaultHandler;
         handler.handle(address, buff, sessionUuid);
-    }
-    
-    private boolean checkSession(SocketAddress address, UUID sessionUuid) {
-        UdpSession session = sessions.get(sessionUuid);
-        if (session == null) {
-            LOG.warn("Session {} not found", sessionUuid);
-            return false;
-        }
-        
-        if (!address.equals(session.getAddress())) {
-            LOG.error("Token received from another address. Expected: {}, Actual: {}", session.getAddress(), address);
-            return false;
-        }
-        
-        if (!session.isAlive()) {
-            LOG.warn("Session expired {}", session.getAddress());
-            return false;
-        }
-
-        session.prolong();
-        return true;
     }
     
     public void validate() {

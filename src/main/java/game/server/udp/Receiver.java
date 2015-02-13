@@ -1,6 +1,7 @@
 package game.server.udp;
 
 import game.server.ServerHandler;
+import game.server.protocol.CommandProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,19 +15,22 @@ import java.util.*;
 
 public class Receiver extends ServerHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(Receiver.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Receiver.class);
     public static final long FAKE_PLAYER_ID = 1L;
 
     private final ByteBuffer buff = ByteBuffer.allocate(4096);
-    public static final Map<SocketAddress, UdpSession> sessions = new HashMap<>();
-    
-    private long sessionThreshold = Long.MAX_VALUE;
-    
+    private final DatagramChannel channel;
     private Selector selector;
-    private DatagramChannel channel;
+    
+    private CommandProcessor processor;
+    private SessionsHolder sessions = new SessionsHolder();
     
     public Receiver(DatagramChannel channel) {
         this.channel = channel;
+        processor = new CommandProcessor(sessions, this::onMessage, true);
+        processor.add(Protocol.AUTH, this::onAuth, false);
+        processor.add(Protocol.ACK, this::onAck, true);
+        processor.add(Protocol.PING, this::onPing, false);
     }
 
     @Override
@@ -36,13 +40,13 @@ public class Receiver extends ServerHandler {
             channel.configureBlocking(false);
             channel.register(selector, SelectionKey.OP_READ);
         } catch (IOException e) {
-            logger.error("Initialization error", e);
+            LOG.error("Initialization error", e);
         }
     }
 
     @Override
     public void handle() throws IOException {
-        invalidate();
+        sessions.invalidate();
         receive();
     }
     
@@ -61,81 +65,24 @@ public class Receiver extends ServerHandler {
         }
     }
 
-    public void invalidate() {
-        long now = System.currentTimeMillis();
-        if (sessionThreshold < now) {
-            Set<Map.Entry<SocketAddress, UdpSession>> entries = sessions.entrySet();
-            Iterator<Map.Entry<SocketAddress, UdpSession>> it = entries.iterator();
-            while (it.hasNext()) {
-                Map.Entry<SocketAddress, UdpSession> entry = it.next();
-                UdpSession session = entry.getValue();
-                if (!session.isAlive()) {
-                    it.remove();
-                    logger.debug("Session invalidated {}", session.getToken());
-                }
-            }
-        }
-    }
-
     public void work(SocketAddress address) throws IOException{
         buff.flip();
-
-        byte cmd = buff.get();
-//        int version = buff.getInt(); //read in protocol method
-
-        switch (cmd) {
-            case Protocol.AUTH: {
-                UUID token = Protocol.getToken(buff);
-                onAuth(address, token);
-                break;
-            }
-            case Protocol.ACK: {
-                int version = buff.getInt();
-                onAck(address, buff);
-                break;
-            }
-            case Protocol.PING: {
-                int version = buff.getInt(); //read in protocol method
-                long ping = buff.getLong();
-                onPing(address, ping);
-                break;
-            }
-            default: {
-                int version = buff.getInt();
-//                byte[] datagram = buff.remaining() == 0 ? new byte[0] : Protocol.toDatagram(buff);
-                onMessage(address);
-            }
-        }
+        processor.process(address, buff);
+        buff.clear();
     }
     
-    public void onAuth(SocketAddress address, UUID token) {
-        if (true && !sessions.containsKey(token)) { //validate token
-            UdpSession session = new UdpSession(token, address);
-            sessions.put(address, session);
+    public void onAuth(SocketAddress address, ByteBuffer buff, UUID token) {
+        boolean authorized = sessions.authorize(address, token);
+        if (authorized) {
             ByteBuffer resp = ByteBuffer.allocate(8);
             resp.putInt(1);
             resp.putInt(1);
-            session.send(new Packet(address, resp.array()));
-            session.send(new Packet(address, getSingleBubbleInit()));
-            sessionThreshold = session.getTimeout();
-        }
-        
+            sessions.tell(token, resp.array());
+            sessions.tell(token, getSingleBubbleInit());
+        }        
     }
     
-    public void onMessage(SocketAddress address) {
-        UdpSession session = sessions.get(address);
-        if (session == null) {
-            logger.error("Session not found by address {}", address);
-            return;
-        }
-
-        if (!session.isAlive()) {
-            logger.debug("Session expired");
-            return;
-        }
-
-        long timeout = session.prolong();
-        sessionThreshold = Math.min(sessionThreshold, timeout);
+    public void onMessage(SocketAddress address, ByteBuffer buff, UUID token) {
         int type = buff.getInt();
         if (type == 3) {
             ByteBuffer resp = ByteBuffer.allocate(28);
@@ -147,26 +94,28 @@ public class Receiver extends ServerHandler {
             resp.putDouble(dx);
             resp.putDouble(dy);
 
-            for (UdpSession udpSession : sessions.values()) {
-                udpSession.send(new Packet(session.getAddress(), resp.array()));
-            }
+//            for (UdpSession udpSession : sessions.values()) {
+//                udpSession.send(new Packet(session.getAddress(), resp.array()));
+//            }
         } else {
-            logger.warn("Invalid command type {}", type);
+            LOG.warn("Invalid command type {}", type);
         }
     }
     
-    public void onAck(SocketAddress address, ByteBuffer buff) {
-        UdpSession session = sessions.get(address);
-        if (session != null) {
-            long packetId = buff.getLong();
-            int num = buff.getInt();
-            session.ack(packetId, num);
-        }
+    public void onAck(SocketAddress address, ByteBuffer buff, UUID token) {
+        long packetId = buff.getLong();
+        int num = buff.getInt();
+        sessions.ack(token, packetId, num);
     }
     
-    public void onPing(SocketAddress address, long time) throws IOException {
+    public void onPing(SocketAddress address, ByteBuffer buff, UUID token) {
+        long time = buff.getLong();
         Protocol.pong(buff, time, System.currentTimeMillis());
-        channel.send(buff, address);
+        try {
+            channel.send(buff, address);
+        } catch (IOException e) {
+            LOG.error("Send ping error", e);
+        }
     }
     
     //TEST METHOD

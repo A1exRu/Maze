@@ -16,7 +16,8 @@ public class FMove extends FUpdate {
 
     @Override
     public void serialize(ByteBuffer buff) {
-                
+        buff.putDouble(dx);
+        buff.putDouble(dy);
     }
 
     @Override

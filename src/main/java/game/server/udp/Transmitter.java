@@ -22,10 +22,10 @@ public class Transmitter extends ServerHandler {
 
     @Override
     public void handle() throws IOException {
-        Map<SocketAddress, UdpSession> sessions = Receiver.sessions;
-        for (UdpSession session : sessions.values()) {
-            session.submit(buff, channel);
-        }
+//        Map<SocketAddress, UdpSession> sessions = Receiver.sessions;
+//        for (UdpSession session : sessions.values()) {
+//            session.submit(buff, channel);
+//        }
         
     }
 }
