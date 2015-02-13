@@ -16,10 +16,16 @@ public class CommandProcessor {
     private Map<Byte, CommandHandler> handlers = new HashMap<>();
     private final BitSet authRequirements = new BitSet();
     
-    private final CommandHandler defaultHandler;
-    private final boolean defaultRequirement;
+    private CommandHandler defaultHandler;
+    private boolean defaultRequirement;
     
     private final SessionsHolder sessionsHolder;
+
+    public CommandProcessor(SessionsHolder sessionsHolder, CommandHandler defaultHandler) {
+        this.sessionsHolder = sessionsHolder;
+        this.defaultHandler = defaultHandler;
+        this.defaultRequirement = defaultHandler.isAuthRequired();
+    }
 
     public CommandProcessor(SessionsHolder sessionsHolder, CommandHandler defaultHandler, boolean authRequirements) {
         this.sessionsHolder = sessionsHolder;
@@ -27,6 +33,10 @@ public class CommandProcessor {
         this.defaultRequirement = authRequirements;
     }
 
+    public void add(byte cmd, CommandHandler handler) {
+        add(cmd, handler, handler.isAuthRequired());
+    }
+    
     public void add(byte cmd, CommandHandler handler, boolean authRequired) {
         if (handlers.containsKey(cmd)) {
             LOG.error("Handler {} has already exists", handler.getClass().getName());
