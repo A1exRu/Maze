@@ -6,6 +6,10 @@ import java.util.UUID;
 
 public interface CommandHandler {
 
+    public default boolean isAuthRequired(){
+        return false; 
+    }
+    
     void handle(SocketAddress address, ByteBuffer buff, UUID sessionUuid);
     
 }
