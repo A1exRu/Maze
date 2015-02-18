@@ -1,6 +1,7 @@
 package game.server.protocol;
 
 import game.server.udp.SessionsHolder;
+import game.server.udp.Transmitter;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -8,21 +9,21 @@ import java.util.UUID;
 
 public class AckHandler implements CommandHandler {
 
-    private SessionsHolder sessions;
+    private Transmitter transmitter;
 
-    public AckHandler(SessionsHolder sessions) {
-        this.sessions = sessions;
+    public AckHandler(Transmitter transmitter) {
+        this.transmitter = transmitter;
     }
-    
+
     @Override
     public boolean isAuthRequired() {
         return true;
     }
 
     @Override
-    public void handle(SocketAddress address, ByteBuffer buff, UUID token) {
+    public void handle(SocketAddress address, ByteBuffer buff, UUID sessionId) {
         long packetId = buff.getLong();
         int num = buff.getInt();
-        sessions.ack(token, packetId, num);    
+        transmitter.ack(sessionId, packetId, num);
     }
 }

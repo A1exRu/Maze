@@ -40,36 +40,36 @@ public class UdpSession {
         return timeout;
     }
     
-    public void send(Packet packet) {
-        packets.put(packet.id, packet);
-    }
-    
-    public void ack(long packetId, int ackNum) {
-        Packet packet = packets.get(packetId);
-        if (packet != null) {
-            boolean transmit = packet.ack(ackNum);
-            if (transmit) {
-                packets.remove(packetId);
-                logger.debug("Packet {} confirmed", packet.id);
-            }
-        }
-    }
-    
-    public void submit(ByteBuffer buff, DatagramChannel channel) throws IOException {
-        for (Packet packet : packets.values()) {
-            if (packet.isTimeout()) {
-                byte[][] datagrams = packet.toParts();
-                for (byte i = 0; i < datagrams.length; i++) {
-                    byte[] datagram = datagrams[i];
-                    byte cmd = (i == datagrams.length - 1) ? Protocol.FINAL_PACKAGE : Protocol.PACKAGE; 
-                    Protocol.write(buff, packet.id, cmd, i, datagram);
-                    channel.send(buff, address);
-                }
-                
-                packet.submit();
-            }
-        }
-    }
+//    public void send(Packet packet) {
+//        packets.put(packet.id, packet);
+//    }
+//
+//    public void ack(long packetId, int ackNum) {
+//        Packet packet = packets.get(packetId);
+//        if (packet != null) {
+//            boolean transmit = packet.ack(ackNum);
+//            if (transmit) {
+//                packets.remove(packetId);
+//                logger.debug("Packet {} confirmed", packet.id);
+//            }
+//        }
+//    }
+//
+//    public void submit(ByteBuffer buff, DatagramChannel channel) throws IOException {
+//        for (Packet packet : packets.values()) {
+//            if (packet.isTimeout()) {
+//                byte[][] datagrams = packet.toParts();
+//                for (byte i = 0; i < datagrams.length; i++) {
+//                    byte[] datagram = datagrams[i];
+//                    byte cmd = (i == datagrams.length - 1) ? Protocol.FINAL_PACKAGE : Protocol.PACKAGE;
+//                    Protocol.write(buff, packet.id, cmd, i, datagram);
+//                    channel.send(buff, address);
+//                }
+//
+//                packet.submit();
+//            }
+//        }
+//    }
 
     public UUID getToken() {
         return token;

@@ -2,6 +2,8 @@ package game.bubble.protocol;
 
 import game.server.protocol.CommandHandler;
 import game.server.udp.SessionsHolder;
+import game.server.udp.Transmitter;
+import game.server.udp.UdpSession;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -11,20 +13,23 @@ public class AuthHandler implements CommandHandler {
 
     public static final long FAKE_PLAYER_ID = 1L;
     private SessionsHolder sessions;
-    
-    public AuthHandler(SessionsHolder sessions) {
+    private Transmitter transmitter;
+
+    public AuthHandler(SessionsHolder sessions, Transmitter transmitter) {
         this.sessions = sessions;
+        this.transmitter = transmitter;
     }
 
     @Override
     public void handle(SocketAddress address, ByteBuffer buff, UUID token) {
         boolean authorized = sessions.authorize(address, token);
         if (authorized) {
+            UdpSession session = sessions.get(token);
             ByteBuffer resp = ByteBuffer.allocate(8);
             resp.putInt(1);
             resp.putInt(1);
-            sessions.tell(token, resp.array());
-            sessions.tell(token, getSingleBubbleInit());
+            transmitter.add(session, resp.array());
+            transmitter.add(session, getSingleBubbleInit());
         }
     }
 

@@ -28,11 +28,11 @@ public class Receiver extends ServerHandler {
     private CommandProcessor processor;
     private SessionsHolder sessions = new SessionsHolder();
     
-    public Receiver(DatagramChannel channel) {
+    public Receiver(DatagramChannel channel, Transmitter transmitter) {
         this.channel = channel;
         processor = new CommandProcessor(sessions, new MessageHandler(sessions));
-        processor.add(Protocol.AUTH, new AuthHandler(sessions));
-        processor.add(Protocol.ACK, new AckHandler(sessions));
+        processor.add(Protocol.AUTH, new AuthHandler(sessions, transmitter));
+        processor.add(Protocol.ACK, new AckHandler(transmitter));
         processor.add(Protocol.PING, new PingHandler(channel));
     }
 

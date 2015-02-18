@@ -2,14 +2,16 @@ package game.server.udp;
 
 import java.net.SocketAddress;
 import java.util.BitSet;
+import java.util.UUID;
 
 public class Packet {
     
-    private static final int DELTA = 10;
+    private static final int DELTA = 1000;
     private static final int AWAIT = 5000;
     public static final byte[] EMPTY = new byte[0];
 
     public final long id;
+    public final UUID sessionId;
     public final SocketAddress address;
     private final byte[] datagram;
     private final BitSet confirms;
@@ -17,9 +19,10 @@ public class Packet {
     private int left;
     private long timeout;
     
-    public Packet(SocketAddress address, byte[] datagram) {
-        this.id = Transmitter.packetSequence.incrementAndGet();
-        this.address = address;
+    public Packet(long id, UdpSession session, byte[] datagram) {
+        this.id = id;
+        this.sessionId = session.getToken();
+        this.address = session.getAddress();
         this.datagram = datagram;
         this.capacity = countParts(datagram.length, DELTA);
         confirms = new BitSet();
@@ -93,6 +96,18 @@ public class Packet {
 
     public int getLeft() {
         return left;
+    }
+    
+    public boolean hasTransmitted() {
+        return left == 0;
+    }
+    
+    public boolean isReady() {
+        return !hasTransmitted() && isTimeout();
+    }
+
+    public UUID getSessionId() {
+        return sessionId;
     }
 
     public SocketAddress getAddress() {

@@ -65,18 +65,8 @@ public class SessionsHolder {
         return valid;
     }
     
-    public void tell(UUID uuid, byte[] datagram) {
-        UdpSession session = sessions.get(uuid);
-        if (session != null) {
-            session.send(new Packet(session.getAddress(), datagram));
-        }
-    }
-    
-    public void ack(UUID uuid, long packetId, int num) {
-        UdpSession session = sessions.get(uuid);
-        if (session != null) {
-            session.ack(packetId, num);
-        }
+    public UdpSession get(UUID sessionId) {
+        return sessions.get(sessionId);
     }
     
     private boolean validate(UUID token) {

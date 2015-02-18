@@ -34,8 +34,8 @@ public class UdpServer {
         socket.bind(address);
         
 
-        receiver = new Receiver(channel);
         transmitter = new Transmitter(channel);
+        receiver = new Receiver(channel, transmitter);
     }
 
     public void start() {
