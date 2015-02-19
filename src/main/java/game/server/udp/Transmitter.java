@@ -32,9 +32,11 @@ public class Transmitter extends ServerHandler {
     public void handle() throws IOException {
         Collection<Packet> outList = packets.values();
         outList.removeIf(Packet::hasTransmitted);
-        outList.stream()
-                .filter(Packet::isReady)
-                .forEach(this::transmit);
+        for (Packet packet : packets.values()) {
+            if (packet.isReady()) {
+                transmit(packet);
+            }
+        }
         merge();
     }
 
