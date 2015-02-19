@@ -48,7 +48,6 @@ public class UdpServer {
     public void stop() throws IOException {
         receiver.stop();
         transmitter.stop();
-        group.destroy();
         socket.close();
         channel.close();
         logger.info("Server stopped");
