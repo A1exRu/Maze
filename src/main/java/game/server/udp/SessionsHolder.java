@@ -1,5 +1,6 @@
 package game.server.udp;
 
+import game.server.ServerTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +15,7 @@ public class SessionsHolder {
     private long threshold = Long.MAX_VALUE;
 
     public void invalidate() {
-        long now = System.currentTimeMillis();
+        long now = ServerTime.mills();
         if (threshold < now) {
             Set<Map.Entry<UUID, UdpSession>> entries = sessions.entrySet();
             Iterator<Map.Entry<UUID, UdpSession>> it = entries.iterator();
@@ -23,7 +24,7 @@ public class SessionsHolder {
                 UdpSession session = entry.getValue();
                 if (!session.isAlive()) {
                     it.remove();
-                    LOG.debug("Session invalidated {}", session.getToken());
+                    LOG.debug("Session invalidated {}", session.getId());
                 }
             }
         }

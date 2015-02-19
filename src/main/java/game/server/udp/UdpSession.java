@@ -1,12 +1,10 @@
 package game.server.udp;
 
+import game.server.ServerTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -16,7 +14,7 @@ public class UdpSession {
     private static final Logger logger = LoggerFactory.getLogger(UdpSession.class);
     public static long SESSION_TIMEOUT = 300000; //5 min
     
-    private final UUID token;
+    private final UUID id;
     private final SocketAddress address;
 //    private final long gameId;
 //    private final long heroId;
@@ -25,18 +23,18 @@ public class UdpSession {
     
     private long timeout;
 
-    public UdpSession(UUID token, SocketAddress address) {
-        this.token = token;
+    public UdpSession(UUID id, SocketAddress address) {
+        this.id = id;
         this.address = address;
         prolong();
     }
     
     public boolean isAlive() {
-        return timeout > System.currentTimeMillis();
+        return timeout > ServerTime.mills();
     }
     
     public final long prolong() {
-        timeout = System.currentTimeMillis() + SESSION_TIMEOUT;
+        timeout = ServerTime.mills() + SESSION_TIMEOUT;
         return timeout;
     }
     
@@ -71,8 +69,8 @@ public class UdpSession {
 //        }
 //    }
 
-    public UUID getToken() {
-        return token;
+    public UUID getId() {
+        return id;
     }
 
     public SocketAddress getAddress() {

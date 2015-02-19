@@ -1,5 +1,6 @@
 package game.server.protocol;
 
+import game.server.ServerTime;
 import game.server.udp.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ public class PingHandler implements CommandHandler {
     @Override
     public void handle(SocketAddress address, ByteBuffer buff, UUID sessionUuid) {
         long time = buff.getLong();
-        Protocol.pong(buff, time, System.currentTimeMillis());
+        Protocol.pong(buff, time, ServerTime.mills());
         try {
             channel.send(buff, address);
         } catch (IOException e) {

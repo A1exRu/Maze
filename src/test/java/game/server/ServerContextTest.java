@@ -18,7 +18,7 @@ public class ServerContextTest {
     }
 
     @Test
-    public void tick() throws Exception{
+    public void tick() throws Exception {
         context.add(game);
 
         Thread.sleep(250);

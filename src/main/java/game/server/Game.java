@@ -18,8 +18,6 @@ public class Game implements Runnable {
 
     private int tick;
     private long lastTime = Long.MAX_VALUE;
-    
-    private BlockingQueue<Object> updates = new ArrayBlockingQueue(1024);
 
     public Game(long gameId) {
         this.gameId = gameId;
@@ -31,7 +29,7 @@ public class Game implements Runnable {
             throw new GameOverException();
         }
 
-        long start = System.currentTimeMillis();
+        long start = ServerTime.mills();
         if (start - lastTime > TICK_SCHEDULE) {
             LOG.warn("Schedule too slow: mills {}, gameId {}", start - lastTime, gameId);
         }
@@ -45,7 +43,7 @@ public class Game implements Runnable {
 
         tick++;
 
-        long end = System.currentTimeMillis();
+        long end = ServerTime.mills();
         if (end - start > TICK_LENGTH) {
             LOG.warn("Tick too slow: mills {}, gameId {}", end - start, gameId);
         }
@@ -53,14 +51,6 @@ public class Game implements Runnable {
 
     private void tick() {
 
-    }
-    
-    private void makeUpdates() {
-        Object update;
-        while ((update = updates.poll()) != null) {
-
-        }
-        
     }
 
     public void stop() {

@@ -1,13 +1,15 @@
 package game.server.udp;
 
+import game.server.ServerTime;
+
 import java.net.SocketAddress;
 import java.util.BitSet;
 import java.util.UUID;
 
 public class Packet {
-    
-    private static final int DELTA = 1000;
-    private static final int AWAIT = 5000;
+
+    public static final int DELTA = 1000;
+    public static final int AWAIT = 5000;
     public static final byte[] EMPTY = new byte[0];
 
     public final long id;
@@ -21,7 +23,7 @@ public class Packet {
     
     public Packet(long id, UdpSession session, byte[] datagram) {
         this.id = id;
-        this.sessionId = session.getToken();
+        this.sessionId = session.getId();
         this.address = session.getAddress();
         this.datagram = datagram;
         this.capacity = countParts(datagram.length, DELTA);
@@ -69,7 +71,7 @@ public class Packet {
     }
     
     public void submit() {
-        timeout = System.currentTimeMillis() + AWAIT;
+        timeout = ServerTime.mills() + AWAIT;
     }
     
     final int countParts(int length, int delta) {
@@ -87,7 +89,7 @@ public class Packet {
     }
     
     public boolean isTimeout() {
-        return timeout < System.currentTimeMillis();
+        return timeout < ServerTime.mills();
     }
 
     public int getCapacity() {

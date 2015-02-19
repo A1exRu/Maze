@@ -46,7 +46,8 @@ public class PacketTest {
     public void ack() {
         Packet packet = new Packet(1, new UdpSession(null, null), new byte[2048]);
         assertEquals(3, packet.getLeft());
-        
+        packet.toParts();
+
         packet.ack(0);
         assertEquals(2, packet.getLeft());
         

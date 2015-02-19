@@ -1,6 +1,7 @@
 package game.server.udp;
 
 import game.server.ServerContext;
+import game.server.ServerTime;
 import game.server.protocol.CommandProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ public class UdpServer {
     private DatagramSocket socket;
 
     public UdpServer(int port) throws IOException {
+        ServerTime.lockAsProduction();
         this.port = port;
         channel = DatagramChannel.open();
         socket = channel.socket();

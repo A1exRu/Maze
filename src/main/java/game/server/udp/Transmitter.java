@@ -17,7 +17,7 @@ public class Transmitter extends ServerHandler {
     private static final Logger LOG = LoggerFactory.getLogger(Transmitter.class);
 
     private final ByteBuffer buff = ByteBuffer.allocate(1024);
-    public static final AtomicLong packetSequence = new AtomicLong();
+    private final AtomicLong packetSequence = new AtomicLong();
 
     private DatagramChannel channel;
     
@@ -46,7 +46,7 @@ public class Transmitter extends ServerHandler {
     
     public void ack(UUID sessionId, long packetId, int part) {
         Packet packet = packets.get(packetId);
-        if (packet != null && sessionId.equals(packet.getSessionId())) {
+        if (packet != null) {
             if (sessionId.equals(packet.getSessionId())) {
                 packet.ack(part);
             } else {
@@ -55,11 +55,23 @@ public class Transmitter extends ServerHandler {
         } 
     }    
     
+    public int queueSize() {
+        return queue.size();
+    }
+
+    public int packetsSize() {
+        return packets.size();
+    }
+    
     private void transmit(Packet packet) {
         SocketAddress address = packet.getAddress();
         byte[][] datagrams = packet.toParts();
         for (byte i = 0; i < datagrams.length; i++) {
             byte[] datagram = datagrams[i];
+            if (datagram.length == 0) {
+                continue;
+            }
+            
             byte cmd = (i == datagrams.length - 1) ? Protocol.FINAL_PACKAGE : Protocol.PACKAGE;
             Protocol.write(buff, packet.id, cmd, i, datagram);
             try {
