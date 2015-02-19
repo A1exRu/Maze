@@ -136,10 +136,10 @@ public class Transmitter extends ServerHandler {
                         if (packets[j] == null) {
                             packets[j] = packets[i];
                             packets[i] = null;
-                            k = j;
                             lastIndex--;
                             break;
                         }
+                        k++;
                     }
                 } else {
                     lastIndex--;
