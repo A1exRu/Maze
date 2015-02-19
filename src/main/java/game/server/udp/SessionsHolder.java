@@ -9,7 +9,7 @@ import java.util.*;
 
 public class SessionsHolder {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Receiver.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SessionsHolder.class);
 
     private final Map<UUID, UdpSession> sessions = new HashMap<>();
     private long threshold = Long.MAX_VALUE;
@@ -77,5 +77,8 @@ public class SessionsHolder {
     private void updateThreshold(UdpSession session) {
         threshold = Math.min(threshold, session.getTimeout());
     }
-    
+
+    public long getThreshold() {
+        return threshold;
+    }
 }
