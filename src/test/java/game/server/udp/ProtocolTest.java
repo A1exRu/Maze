@@ -1,34 +1,41 @@
 package game.server.udp;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 
 public class ProtocolTest {
+
+    private ByteBuffer buffer = ByteBuffer.allocate(1024);
     
-//    @Test
-//    public void auth() {
-//        final String MESSAGE = "abcdefg";
-//
-//        ByteBuffer buffer = ByteBuffer.allocate(1024);
-//        Protocol.AUTHENTICATION.write(buffer, MESSAGE.getBytes());
-//
-//        Protocol protocol = Protocol.values()[buffer.getInt()];
-//        byte[] result = protocol.toDatagram(buffer);
-//        assertEquals(MESSAGE, new String(result));
-//    }
-//
-//    @Test(expected = IllegalArgumentException.class)
-//    public void invalidVersion() {
-//        ByteBuffer buffer = ByteBuffer.allocate(1024);
-//        buffer.putInt(Protocol.AUTHENTICATION.ordinal());
-//        buffer.putInt(-1);
-//        buffer.flip();
-//
-//        Protocol protocol = Protocol.values()[buffer.getInt()];
-//        protocol.toDatagram(buffer);
-//    }
+    @Before
+    public void setup() {
+        buffer.clear();
+    }
+    
+    @Test
+    public void auth() {
+        UUID id = UUID.randomUUID();
+        Protocol.auth(buffer, id);
+        
+        byte cmd = Protocol.getCommand(buffer);
+        assertEquals(Protocol.AUTH, cmd);
+        
+        UUID token = Protocol.getToken(buffer);
+        assertEquals(id, token);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidVersion() {
+        buffer.putInt(Protocol.AUTH);
+        buffer.putInt(-1);
+        buffer.flip();
+
+        Protocol.getCommand(buffer);
+    }
     
 }
