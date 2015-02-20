@@ -82,6 +82,15 @@ public class SessionsHolderTest {
     }
 
     @Test
+    public void testAuthorizeNullRejected() throws Exception {
+        UUID sessionId = null;
+        SocketAddress address = Mockito.mock(SocketAddress.class);
+        boolean authorize = holder.authorize(address, sessionId);
+        assertFalse(authorize);
+        assertFalse(holder.hasSession(null));
+    }
+
+    @Test
     public void testGetWhenNotFound() throws Exception {
         UdpSession session = holder.get(UUID.randomUUID());
         assertNull(session);
