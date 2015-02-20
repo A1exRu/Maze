@@ -28,12 +28,19 @@ public class Transmitter extends ServerHandler {
     private int lastIndex = -1;
     private int success;
     
+    //TODO alex_ru: move to config
+    private boolean ackRequirements = false;
     private int GC_THRESHOLD = 1000;
     private long threshold;
     
     
     public Transmitter(DatagramChannel channel) {
+        this(channel, true);
+    }
+
+    public Transmitter(DatagramChannel channel, boolean ackRequirements) {
         this.channel = channel;
+        this.ackRequirements = ackRequirements;
         threshold = ServerTime.mills() + GC_THRESHOLD;
     }
 
@@ -46,11 +53,12 @@ public class Transmitter extends ServerHandler {
             }
 
             if (packet.hasTransmitted()) {
-                index.remove(packet.id);
-                packets[i] = null; //drop from array for gc
-                success++;
+                remove(i, packet);
             } else if (packet.isReady()) {
                 transmit(packet);
+                if (packet.isNotAckRequired()) {
+                    remove(i, packet);
+                }
             }
         }
         
@@ -58,9 +66,19 @@ public class Transmitter extends ServerHandler {
         merge();
     }
 
+    private void remove(int packIndex, Packet packet) {
+        index.remove(packet.id);
+        packets[packIndex] = null; //drop from array for gc
+        success++;
+    }
+
     public void add(UdpSession session, byte[] datagram) {
+        add(session, datagram, ackRequirements);
+    }
+    
+    public void add(UdpSession session, byte[] datagram, boolean ackRequirements) {
         long packetId = packetSequence.incrementAndGet();
-        Packet packet = new Packet(packetId, session, datagram);
+        Packet packet = new Packet(packetId, session, datagram, ackRequirements);
         queue.add(packet);
     }
     
@@ -146,8 +164,12 @@ public class Transmitter extends ServerHandler {
                 }
             }
             
-            
+            success = 0;
             threshold = ServerTime.mills() + GC_THRESHOLD;
         }
+    }
+
+    public void setAckRequirements(boolean ackRequirements) {
+        this.ackRequirements = ackRequirements;
     }
 }

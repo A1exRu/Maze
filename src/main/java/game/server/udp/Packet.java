@@ -21,7 +21,9 @@ public class Packet {
     private int left;
     private long timeout;
     
-    public Packet(long id, UdpSession session, byte[] datagram) {
+    private boolean ackRequired;
+    
+    public Packet(long id, UdpSession session, byte[] datagram, boolean ackRequired) {
         this.id = id;
         this.sessionId = session.getId();
         this.address = session.getAddress();
@@ -30,6 +32,7 @@ public class Packet {
         confirms = new BitSet();
         confirms.set(0, capacity, true);
         this.left = capacity;
+        this.ackRequired = ackRequired;
     }
     
     byte[][] toParts() {
@@ -114,6 +117,14 @@ public class Packet {
 
     public SocketAddress getAddress() {
         return address;
+    }
+
+    public boolean isAckRequired() {
+        return ackRequired;
+    }
+
+    public boolean isNotAckRequired() {
+        return !ackRequired;
     }
 
     @Override

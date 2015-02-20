@@ -145,6 +145,21 @@ public class TransmitterTest {
     }
 
     @Test
+    public void ackNotRequired() throws IOException {
+        transmitter.setAckRequirements(false);
+        ServerTime.toFixed();
+        String message = "Hello UDP";
+        transmitter.add(session, message.getBytes());
+        transmitter.handle();
+        ServerTime.addMills(1);
+        transmitter.handle();
+        verify(channel, times(1)).send(any(), any());
+
+        assertEquals(0, transmitter.queueSize());
+        assertEquals(0, transmitter.packetsSize());
+    }
+
+    @Test
     public void ackOnSingle() throws IOException {
         ServerTime.toFixed();
         String message = "Hello UDP";
