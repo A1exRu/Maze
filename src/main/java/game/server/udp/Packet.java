@@ -22,6 +22,7 @@ public class Packet {
     private long timeout;
     
     private boolean ackRequired;
+    private int attempts;
     
     public Packet(long id, UdpSession session, byte[] datagram, boolean ackRequired) {
         this.id = id;
@@ -75,6 +76,7 @@ public class Packet {
     
     public void submit() {
         timeout = ServerTime.mills() + AWAIT;
+        attempts--;
     }
     
     final int countParts(int length, int delta) {
@@ -95,20 +97,32 @@ public class Packet {
         return timeout < ServerTime.mills();
     }
 
-    public int getCapacity() {
-        return capacity;
-    }
-
-    public int getLeft() {
-        return left;
-    }
-    
     public boolean hasTransmitted() {
         return left == 0;
     }
     
     public boolean isReady() {
         return !hasTransmitted() && isTimeout();
+    }
+
+    public boolean isNotAckRequired() {
+        return !ackRequired;
+    }
+    
+    public boolean hasAttempts() {
+        return attempts > 0;
+    }
+    
+    public void setAttempts(int attempts) {
+        this.attempts = attempts;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public int getLeft() {
+        return left;
     }
 
     public UUID getSessionId() {
@@ -121,10 +135,6 @@ public class Packet {
 
     public boolean isAckRequired() {
         return ackRequired;
-    }
-
-    public boolean isNotAckRequired() {
-        return !ackRequired;
     }
 
     @Override

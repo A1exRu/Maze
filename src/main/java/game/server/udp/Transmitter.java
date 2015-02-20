@@ -30,6 +30,7 @@ public class Transmitter extends ServerHandler {
     
     //TODO alex_ru: move to config
     private boolean ackRequirements = false;
+    private int attempts = 5;
     private int GC_THRESHOLD = 1000;
     private long threshold;
     
@@ -56,7 +57,7 @@ public class Transmitter extends ServerHandler {
                 remove(i, packet);
             } else if (packet.isReady()) {
                 transmit(packet);
-                if (packet.isNotAckRequired()) {
+                if (packet.isNotAckRequired() || !packet.hasAttempts()) {
                     remove(i, packet);
                 }
             }
@@ -79,6 +80,7 @@ public class Transmitter extends ServerHandler {
     public void add(UdpSession session, byte[] datagram, boolean ackRequirements) {
         long packetId = packetSequence.incrementAndGet();
         Packet packet = new Packet(packetId, session, datagram, ackRequirements);
+        packet.setAttempts(attempts);
         queue.add(packet);
     }
     
@@ -115,7 +117,7 @@ public class Transmitter extends ServerHandler {
             try {
                 channel.send(buff, address);
             } catch (IOException e) {
-                LOG.error("Transmission failed", e);
+                LOG.error("[ERR-500]: Transmission failed", e);
             }
         }
 
@@ -135,7 +137,7 @@ public class Transmitter extends ServerHandler {
         Packet packet;
         while ((packet = queue.poll()) != null) {
             if (lastIndex == packets.length - 1) {
-                //TODO: fix extension
+                LOG.error("[FATAL-100]: Not enough space in packages queue");
                 break;
             } else {
                 lastIndex++;
@@ -171,5 +173,9 @@ public class Transmitter extends ServerHandler {
 
     public void setAckRequirements(boolean ackRequirements) {
         this.ackRequirements = ackRequirements;
+    }
+
+    public int getAttempts() {
+        return attempts;
     }
 }

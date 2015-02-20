@@ -98,17 +98,40 @@ public class TransmitterTest {
         ServerTime.addMills(1);
         transmitter.handle();
         verify(channel).send(any(), any());
-        
-        transmitter.handle();
-        verify(channel).send(any(), any());
-        
-        ServerTime.addMills(1000);
+
         transmitter.handle();
         verify(channel).send(any(), any());
 
-        ServerTime.addMills(10000);
+        ServerTime.addMills(Packet.AWAIT - 2);
+        transmitter.handle();
+        verify(channel).send(any(), any());
+
+        ServerTime.addMills(3);
         transmitter.handle();
         verify(channel, times(2)).send(any(), any());
+    }
+
+    @Test
+    public void transmitAttempts() throws IOException {
+        ServerTime.toFixed();
+        String message = "Hello UDP";
+        transmitter.add(session, message.getBytes());
+        transmitter.handle();
+        verify(channel, never()).send(any(), any());
+
+        ServerTime.addMills(1);
+        int attempts = transmitter.getAttempts();
+        for (int i = 0; i < attempts; i++){
+            assertEquals(1, transmitter.packetsSize());
+            transmitter.handle();
+            verify(channel, times(i + 1)).send(any(), any());
+            ServerTime.addMills(Packet.AWAIT + 1);
+        }
+        
+        transmitter.handle();
+        verify(channel, times(attempts)).send(any(), any());
+        assertEquals(0, transmitter.queueSize());
+        assertEquals(0, transmitter.packetsSize());
     }
     
     @Test
