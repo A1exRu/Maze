@@ -1,9 +1,12 @@
 package game.bubble.protocol;
 
 import game.server.protocol.CommandHandler;
+import game.server.udp.Protocol;
 import game.server.udp.SessionsHolder;
 import game.server.udp.Transmitter;
 import game.server.udp.UdpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -11,7 +14,9 @@ import java.util.UUID;
 
 public class AuthHandler implements CommandHandler {
 
+    private final static Logger LOG = LoggerFactory.getLogger(AuthHandler.class);
     public static final long FAKE_PLAYER_ID = 1L;
+    
     private SessionsHolder sessions;
     private Transmitter transmitter;
 
@@ -21,7 +26,13 @@ public class AuthHandler implements CommandHandler {
     }
 
     @Override
-    public void handle(SocketAddress address, ByteBuffer buff, UUID token) {
+    public void handle(SocketAddress address, ByteBuffer buff, UUID sessionId) {
+        if (sessionId != null) {
+            LOG.warn("User already authorized {}", sessionId);
+            return;
+        }
+
+        UUID token = Protocol.getToken(buff);
         boolean authorized = sessions.authorize(address, token);
         if (authorized) {
             UdpSession session = sessions.get(token);

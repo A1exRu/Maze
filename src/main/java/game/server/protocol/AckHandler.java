@@ -1,6 +1,5 @@
 package game.server.protocol;
 
-import game.server.udp.SessionsHolder;
 import game.server.udp.Transmitter;
 
 import java.net.SocketAddress;

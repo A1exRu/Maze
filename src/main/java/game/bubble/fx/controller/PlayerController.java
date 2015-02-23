@@ -1,5 +1,6 @@
-package game.test.client;
+package game.bubble.fx.controller;
 
+import game.bubble.Context;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -43,16 +44,6 @@ public class PlayerController {
         
         
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 
     private Circle createCircle(double x, double y, Color color) {
         final Circle circle = new Circle(x, y, 25, color);
@@ -124,7 +115,7 @@ public class PlayerController {
         }
     }
     
-    private class AuthHandler implements MessageHandler {
+    private class AuthHandler implements game.test.client.MessageHandler {
         @Override
         public int getCode() {
             return 2;
@@ -152,7 +143,7 @@ public class PlayerController {
         }
     }
     
-    private class MoveHandler implements MessageHandler {
+    private class MoveHandler implements game.test.client.MessageHandler {
         @Override
         public int getCode() {
             return 3;

@@ -1,4 +1,4 @@
-package game.test.client;
+package game.bubble.fx.controller;
 
 import javafx.animation.TranslateTransition;
 import javafx.scene.shape.Circle;

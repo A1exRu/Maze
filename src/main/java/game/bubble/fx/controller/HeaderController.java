@@ -1,6 +1,8 @@
-package game.test;
+package game.bubble.fx.controller;
 
-import game.test.client.Context;
+import game.server.udp.Protocol;
+import game.test.UdpClient;
+import game.bubble.Context;
 import game.test.client.MessageHandler;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -44,7 +46,7 @@ public class HeaderController {
             };
             udpClient.addMessageHandler(authHandler);
         }
-        udpClient.auth(Context.authToken);
+        udpClient.send(buff -> Protocol.auth(buff, Context.authToken));
     }
     
     @FXML
@@ -71,7 +73,7 @@ public class HeaderController {
     
     private Node getSettingsNode() throws IOException {
         if (settingsNode == null) {
-            settingsNode = FXMLLoader.load(getClass().getResource("settings.fxml"));
+            settingsNode = FXMLLoader.load(getClass().getResource("/bubble/game/test/settings.fxml"));
         }
         
         return settingsNode;

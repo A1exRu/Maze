@@ -1,6 +1,5 @@
-package game.test;
+package game.bubble;
 
-import game.test.client.Context;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -18,7 +17,7 @@ public class BubbleClient extends Application {
         Context.udpClient.start();
         stage.setTitle("Shop Management");
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("home.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/bubble/game/test/home.fxml"));
         Pane myPane = loader.load();
         Scene myScene = new Scene(myPane);
         stage.setScene(myScene);

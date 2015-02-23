@@ -1,5 +1,6 @@
 package game.test;
 
+import game.bubble.Context;
 import game.server.udp.Packet;
 import game.server.udp.Protocol;
 import game.test.client.MessageHandler;
@@ -16,7 +17,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class UdpClient {
 
@@ -36,8 +36,7 @@ public class UdpClient {
     private Selector selector;
 
     private final Map<Long, Pack> packets = new HashMap<>();
-    private final Queue<Ack> acks = new ConcurrentLinkedQueue<>();
-    
+
     private final Map<Long, PingCallback> pingMap = new HashMap<>();
     private final Queue<Long> pingQueue = new ArrayBlockingQueue<>(4);
 
@@ -70,10 +69,9 @@ public class UdpClient {
             for (SelectionKey key : keys) {
                 if (key.isReadable()) {
                     in.clear();
-                    SocketAddress receive = channel.receive(in);
+                    channel.receive(in);
                     in.flip();
-                    byte cmd = in.get();
-                    int version = in.getInt();
+                    byte cmd = Protocol.getCommand(in);
                     if (cmd == Protocol.PONG) {
                         long ping = in.getLong();
                         long pong = in.getLong();
@@ -94,13 +92,13 @@ public class UdpClient {
     }
 
     private void parseMessage(byte cmd) {
-        final long paketId = in.getLong();
+        final long packetId = in.getLong();
         int num = in.getInt();
-        Pack pack = packets.get(paketId);
+        Pack pack = packets.get(packetId);
         if (pack == null) {
             pack = new Pack();
-            pack.id = paketId;
-            packets.put(paketId, pack);
+            pack.id = packetId;
+            packets.put(packetId, pack);
         }
 
         byte[] datagram = new byte[in.remaining()];
@@ -110,11 +108,11 @@ public class UdpClient {
             pack.last = num;
         }
 
-        acks.add(new Ack(paketId, num));
+        words.add(buff -> Protocol.ack(buff, Context.authToken, packetId, num));
         in.clear();
         if (pack.isReceive()) {
             manager.onMessage(pack.toDatagram());
-            packets.remove(paketId);
+            packets.remove(packetId);
         }
     }
 
@@ -127,35 +125,23 @@ public class UdpClient {
 
         while (!words.isEmpty()) {
             Word word = words.poll();
-            word.tell();
+            word.tell(out);
             send();
-        }
-
-        while (!acks.isEmpty()) {
-            Ack ack = acks.poll();
-            out.clear();
-            out.put(Protocol.ACK);
-            out.putInt(Protocol.VERSION);
-            out.putLong(ack.packId);
-            out.putInt(ack.num);
-            out.flip();
-            send();
-            logger.debug("Ack pack {} num {}", ack.packId, ack.num);
         }
     }
-    
+
     public void ping(PingCallback callback) {
         long now = System.currentTimeMillis();
         pingMap.put(now, callback);
         pingQueue.add(now);
     }
 
-    public void auth(final UUID token) {
-        words.add(() -> Protocol.auth(out, token));
+    public void send(Word word) {
+        words.add(word);
     }
     
     public void send(byte[] data) {
-        words.add(() -> Protocol.send(out, data));
+        words.add(buff -> Protocol.send(buff, Context.authToken, data));
     }
     
     private void send() {
@@ -176,6 +162,10 @@ public class UdpClient {
             }
         }
         
+    }
+
+    public void addMessageHandler(MessageHandler handler) {
+        manager.register(handler);
     }
     
     public void close() {
@@ -217,26 +207,12 @@ public class UdpClient {
         }
     }
     
-    public void addMessageHandler(MessageHandler handler) {
-        manager.register(handler);
-    }
-
-    public class Ack {
-        long packId;
-        int num;
-
-        public Ack(long packId, int num) {
-            this.packId = packId;
-            this.num = num;
-        }
-    }
-    
     public static interface PingCallback {
         void call(long ping, long pong);
     }
     
     public static interface Word {
-        void tell();
+        void tell(ByteBuffer out);
     }
     
 }

@@ -66,12 +66,23 @@ public class Protocol {
         buff.flip();
     }
     
-    public static void auth(ByteBuffer buff, UUID token) {
+    public static void auth(ByteBuffer buff, UUID sessionId) {
         buff.clear();
         buff.put(AUTH);
         buff.putInt(VERSION);
-        buff.putLong(token.getMostSignificantBits());
-        buff.putLong(token.getLeastSignificantBits());
+        sign(buff, sessionId);
+        buff.flip();
+    }
+
+    public static void ack(ByteBuffer buff, UUID sessionId, long packId, int partNum) {
+        buff.clear();
+        buff.put(ACK);
+        buff.putInt(VERSION);
+        if (sessionId != null) {
+            sign(buff, sessionId);
+        }
+        buff.putLong(packId);
+        buff.putInt(partNum);
         buff.flip();
     }
     
@@ -85,12 +96,20 @@ public class Protocol {
         buff.flip();
     }
 
-    public static void send(ByteBuffer buff, byte[] message) {
+    public static void send(ByteBuffer buff, UUID sessionId, byte[] message) {
         buff.clear();
         buff.put(FINAL_PACKAGE);
         buff.putInt(VERSION);
+        if (sessionId != null) {
+            sign(buff, sessionId);
+        }
         buff.put(message);
         buff.flip();
+    }
+
+    private static void sign(ByteBuffer buff, UUID sessionId) {
+        buff.putLong(sessionId.getMostSignificantBits());
+        buff.putLong(sessionId.getLeastSignificantBits());
     }
 
 }

@@ -1,4 +1,4 @@
-package game.test;
+package game.bubble.fx.controller;
 
 public class SettingsController {
 }

@@ -1,4 +1,4 @@
-package game.test;
+package game.bubble.fx;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

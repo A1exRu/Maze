@@ -1,4 +1,4 @@
-package game.test.client;
+package game.bubble;
 
 import game.test.UdpClient;
 
