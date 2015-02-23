@@ -2,6 +2,7 @@ package game.bubble.protocol;
 
 import game.server.protocol.CommandHandler;
 import game.server.udp.SessionsHolder;
+import game.server.udp.Transmitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,12 +14,14 @@ public class MessageHandler implements CommandHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageHandler.class);
 
-    private SessionsHolder sessions;
+    private SessionsHolder sessionsHolder;
+    private Transmitter transmitter;
 
-    public MessageHandler(SessionsHolder sessions) {
-        this.sessions = sessions;
+    public MessageHandler(SessionsHolder sessionsHolder, Transmitter transmitter) {
+        this.sessionsHolder = sessionsHolder;
+        this.transmitter = transmitter;
     }
-    
+
     @Override
     public boolean isAuthRequired() {
         return true;
@@ -37,6 +40,7 @@ public class MessageHandler implements CommandHandler {
             resp.putDouble(dx);
             resp.putDouble(dy);
 
+            transmitter.add(sessionsHolder.get(sessionUuid), resp.array());
 //            for (UdpSession udpSession : sessions.values()) {
 //                udpSession.send(new Packet(session.getAddress(), resp.array()));
 //            }

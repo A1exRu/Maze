@@ -30,7 +30,7 @@ public class Receiver extends ServerHandler {
     
     public Receiver(DatagramChannel channel, Transmitter transmitter) {
         this.channel = channel;
-        processor = new CommandProcessor(sessions, new MessageHandler(sessions));
+        processor = new CommandProcessor(sessions, new MessageHandler(sessions, transmitter));
         processor.add(Protocol.AUTH, new AuthHandler(sessions, transmitter));
         processor.add(Protocol.ACK, new AckHandler(transmitter));
         processor.add(Protocol.PING, new PingHandler(channel));
