@@ -25,7 +25,7 @@ public class ServerContext {
 
     public boolean add(Game task) {
         if (terminated) {
-            LOG.error("Server has already terminated");
+            LOG.error("[ERR-1001]: Server has already terminated");
         } else {
             games.put(task.getGameId(), task);
             scheduler.scheduleAtFixedRate(task, TICK_LEN, TICK_LEN, TimeUnit.MILLISECONDS);
@@ -50,7 +50,7 @@ public class ServerContext {
         try {
             scheduler.awaitTermination(5, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
-            LOG.error("Termination timeout, probably some games have frozen");
+            LOG.error("[ERR-1002]: Termination timeout, probably some games have frozen");
         }
         games.clear();
     }

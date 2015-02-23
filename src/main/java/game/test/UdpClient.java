@@ -19,7 +19,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class UdpClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(UdpClient.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UdpClient.class);
     
     private InetSocketAddress address;
     private int port;
@@ -51,7 +51,7 @@ public class UdpClient {
             channel.configureBlocking(false);
             channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
         } catch (Exception e) {
-            logger.error("Failed to start client", e);
+            LOG.error("Failed to start client", e);
             terminated = true;
         }
     }
@@ -146,9 +146,9 @@ public class UdpClient {
     private void send() {
         try {
             channel.send(out, address);
-            logger.info("Packet transmitted");
+            LOG.info("Packet transmitted");
         } catch (IOException e) {
-            logger.error("Transmit error", e);
+            LOG.error("Transmit error", e);
         }
     }
 
@@ -157,7 +157,7 @@ public class UdpClient {
             try {
                 task.run();
             } catch (Exception e) {
-                logger.error("Error on looping thread");
+                LOG.error("Error on looping thread");
             }
         }
     }

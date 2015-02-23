@@ -117,7 +117,7 @@ public class Transmitter extends ServerHandler {
             try {
                 channel.send(buff, address);
             } catch (IOException e) {
-                LOG.error("[ERR-500]: Transmission failed", e);
+                LOG.error("[ERR-1005]: Transmission failed", e);
             }
         }
 
@@ -137,7 +137,7 @@ public class Transmitter extends ServerHandler {
         Packet packet;
         while ((packet = queue.poll()) != null) {
             if (lastIndex == packets.length - 1) {
-                LOG.error("[FATAL-100]: Not enough space in packages queue");
+                LOG.error("[ERR-1004]: Not enough space in packages queue");
                 break;
             } else {
                 lastIndex++;

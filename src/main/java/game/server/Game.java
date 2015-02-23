@@ -31,21 +31,21 @@ public class Game implements Runnable {
 
         long start = ServerTime.mills();
         if (start - lastTime > TICK_SCHEDULE) {
-            LOG.warn("Schedule too slow: mills {}, gameId {}", start - lastTime, gameId);
+            LOG.warn("[WARN-101]: Schedule too slow: mills {}, gameId {}", start - lastTime, gameId);
         }
         lastTime = start;
 
         try {
             tick();
         } catch (Exception e) {
-            LOG.error("Tick exception", e);
+            LOG.error("[ERR-500]: Tick exception", e);
         }
 
         tick++;
 
         long end = ServerTime.mills();
         if (end - start > TICK_LENGTH) {
-            LOG.warn("Tick too slow: mills {}, gameId {}", end - start, gameId);
+            LOG.warn("[WARN-102]: Tick too slow: mills {}, gameId {}", end - start, gameId);
         }
     }
 

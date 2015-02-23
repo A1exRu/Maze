@@ -43,7 +43,7 @@ public class Receiver extends ServerHandler {
             channel.configureBlocking(false);
             channel.register(selector, SelectionKey.OP_READ);
         } catch (IOException e) {
-            LOG.error("Initialization error", e);
+            LOG.error("[ERR-1003]: Initialization of datagram channel and selector error", e);
         }
     }
 

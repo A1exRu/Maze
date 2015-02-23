@@ -1,0 +1,50 @@
+{
+  "type": "ERROR",
+  "description" : "Server error codes. Codes ERR-*** close to HTTP codes by meaning, ERR-**** is critical server error",
+  "codes": [
+    {
+      "code": "ERR-400",
+      "description": "Invalid packet received"
+    },
+    {
+      "code": "ERR-401",
+      "description": "Session error: not found, expired, etc"
+    },
+    {
+      "code": "ERR-403",
+      "description": "Not authorized user sent data"
+    },
+    {
+      "code": "ERR-500",
+      "description": "Game error"
+    },
+    {
+      "code": "ERR-1001",
+      "description": "Server has already terminated"
+    },
+    {
+      "code": "ERR-1002",
+      "description": "Termination timeout, probably some games have frozen"
+    },
+    {
+      "code": "ERR-1003",
+      "description": "Initialization of datagram channel and selector error"
+    },
+    {
+      "code": "ERR-1004",
+      "description": "Not enough space in packages queue"
+    },
+    {
+      "code": "ERR-1005",
+      "description": "Transmission error"
+    },
+    {
+      "code": "ERR-1006",
+      "description": "Server handler error"
+    },
+    {
+      "code": "ERR-1100",
+      "description": "Command don't support multi-handlers"
+    }
+  ]
+}

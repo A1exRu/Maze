@@ -27,7 +27,7 @@ public class PingHandler implements CommandHandler {
         try {
             channel.send(buff, address);
         } catch (IOException e) {
-            LOG.error("Send ping error", e);
+            LOG.error("[ERR-1005]: Pong sending error", e);
         }    
     }
 }

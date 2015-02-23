@@ -39,7 +39,7 @@ public class CommandProcessor {
     
     public void add(byte cmd, CommandHandler handler, boolean authRequired) {
         if (handlers.containsKey(cmd)) {
-            LOG.error("Handler {} has already exists", handler.getClass().getName());
+            LOG.error("[ERR-1100]: Handler {} has already exists", handler.getClass().getName());
             throw new IllegalStateException("Handler has already exists");
         }
         

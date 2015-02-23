@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class ServerHandler implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(ServerHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServerHandler.class);
 
     private boolean terminated;
     
@@ -22,7 +22,7 @@ public abstract class ServerHandler implements Runnable {
             try {
                 handle();
             } catch (Exception e) {
-                logger.error("Receiver error", e);
+                LOG.error("[ERR-1006]: Handling failed", e);
             }
         }
     }

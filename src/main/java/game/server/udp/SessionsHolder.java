@@ -37,17 +37,17 @@ public class SessionsHolder {
     public boolean checkSession(SocketAddress address, UUID sessionUuid) {
         UdpSession session = sessions.get(sessionUuid);
         if (session == null) {
-            LOG.warn("Session {} not found", sessionUuid);
+            LOG.warn("[ERR-401]: Session {} not found", sessionUuid);
             return false;
         }
 
         if (!address.equals(session.getAddress())) {
-            LOG.error("Token received from another address. Expected: {}, Actual: {}", session.getAddress(), address);
+            LOG.error("[ERR-403]: Token received from another address. Expected: {}, Actual: {}", session.getAddress(), address);
             return false;
         }
 
         if (!session.isAlive()) {
-            LOG.warn("Session expired {}", session.getAddress());
+            LOG.warn("[ERR-401]: Session expired {}", session.getAddress());
             return false;
         }
 

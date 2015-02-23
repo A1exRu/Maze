@@ -9,12 +9,12 @@ import java.util.Map;
 
 public class MessageManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessageManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MessageManager.class);
     private Map<Integer, MessageHandler> handlers = new HashMap<>();
     
     public void onMessage(byte[] bytes) {
         if (bytes == null || bytes.length < 3) {
-            logger.warn("Invalid message bytes");
+            LOG.warn("[ERR-400]: Invalid message bytes");
             return;
         }
         
