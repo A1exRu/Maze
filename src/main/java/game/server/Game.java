@@ -31,7 +31,7 @@ public class Game implements Runnable {
 
         long start = ServerTime.mills();
         if (start - lastTime > TICK_SCHEDULE) {
-            LOG.warn("[WARN-101]: Schedule too slow: mills {}, gameId {}", start - lastTime, gameId);
+            LOG.error("[WARN-101]: Long scheduler delay: mills {}, gameId {}", start - lastTime, gameId);
         }
         lastTime = start;
 
@@ -45,7 +45,7 @@ public class Game implements Runnable {
 
         long end = ServerTime.mills();
         if (end - start > TICK_LENGTH) {
-            LOG.warn("[WARN-102]: Tick too slow: mills {}, gameId {}", end - start, gameId);
+            LOG.error("[WARN-102]: Tick too slow: mills {}, gameId {}", end - start, gameId);
         }
     }
 
