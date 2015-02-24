@@ -12,6 +12,7 @@
     <context:property-placeholder location="classpath*:server.properties"/>
     
     <!-- UDP server -->
+    <bean id="udpConfig" class="game.server.udp.UdpConfig"/>
     
     <bean id="udpServer" class="game.server.udp.UdpServer">
         <constructor-arg value="${udp.server.port}"/>
@@ -20,9 +21,7 @@
     <bean id="channel" class="java.nio.channels.DatagramChannel" factory-method="open"/>
 
     <bean id="serverContext" class="game.server.ServerContext"/>
-    <bean id="transmitter" class="game.server.udp.Transmitter">
-        <constructor-arg ref="channel"/>
-    </bean>
+    <bean id="transmitter" class="game.server.udp.Transmitter" init-method="onStart"/>
 
     <bean id="receiver" class="game.server.udp.Receiver">
         <constructor-arg ref="channel"/>

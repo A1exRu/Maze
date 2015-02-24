@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class TransmitterTest {
     
+    @InjectMocks
     private Transmitter transmitter;
     
     @Mock
@@ -33,9 +35,21 @@ public class TransmitterTest {
     @Mock
     private DatagramChannel channel;
     
+    @Mock
+    private UdpConfig config;
+    
     @Before
     public void setup() {
-        transmitter = new Transmitter(channel);
+        when(config.getOutBufferSize()).thenReturn(1024);
+        when(config.getQueueSize()).thenReturn(1024);
+        when(config.getPacketsSize()).thenReturn(2048);
+        when(config.isAckRequirements()).thenReturn(true);
+        when(config.getAttempts()).thenReturn(5);
+        when(config.getGc()).thenReturn(100);
+        when(config.getThreshold()).thenReturn(1000);
+        when(config.getPacketMaxSize()).thenReturn(1000);
+        when(config.getPacketAckAwait()).thenReturn(500);
+        transmitter.onStart();
         doReturn(UUID.randomUUID()).when(session).getId();
     }
     
@@ -102,7 +116,7 @@ public class TransmitterTest {
         transmitter.handle();
         verify(channel).send(any(), any());
 
-        ServerTime.addMills(Packet.AWAIT - 2);
+        ServerTime.addMills(config.getPacketAckAwait() - 2);
         transmitter.handle();
         verify(channel).send(any(), any());
 
@@ -125,7 +139,7 @@ public class TransmitterTest {
             assertEquals(1, transmitter.packetsSize());
             transmitter.handle();
             verify(channel, times(i + 1)).send(any(), any());
-            ServerTime.addMills(Packet.AWAIT + 1);
+            ServerTime.addMills(config.getPacketAckAwait() + 1);
         }
         
         transmitter.handle();
@@ -145,21 +159,21 @@ public class TransmitterTest {
         verify(channel, times(2)).send(any(), any());
         
         transmitter.ack(session.getId(), 1L, 0);
-        ServerTime.addMills(Packet.AWAIT + 1);
+        ServerTime.addMills(config.getPacketAckAwait() + 1);
         transmitter.handle();
         verify(channel, times(3)).send(any(), any());
 
         transmitter.ack(session.getId(), 1L, 0);
-        ServerTime.addMills(Packet.AWAIT + 1);
+        ServerTime.addMills(config.getPacketAckAwait() + 1);
         transmitter.handle();
         verify(channel, times(4)).send(any(), any());
 
         transmitter.ack(session.getId(), 1L, 1);
-        ServerTime.addMills(Packet.AWAIT + 1);
+        ServerTime.addMills(config.getPacketAckAwait() + 1);
         transmitter.handle();
         verify(channel, times(4)).send(any(), any());
 
-        ServerTime.addMills(Packet.AWAIT + 1);
+        ServerTime.addMills(config.getPacketAckAwait() + 1);
         transmitter.handle();
         verify(channel, times(4)).send(any(), any());
 
@@ -169,7 +183,7 @@ public class TransmitterTest {
 
     @Test
     public void ackNotRequired() throws IOException {
-        transmitter.setAckRequirements(false);
+        when(config.isAckRequirements()).thenReturn(false);
         ServerTime.toFixed();
         String message = "Hello UDP";
         transmitter.add(session, message.getBytes());
@@ -195,7 +209,7 @@ public class TransmitterTest {
         transmitter.handle();
         
         transmitter.ack(session.getId(), 1L, 0);
-        ServerTime.addMills(Packet.AWAIT + 1);
+        ServerTime.addMills(config.getPacketAckAwait() + 1);
         
         transmitter.handle();
         verify(channel).send(any(), any());
@@ -219,7 +233,7 @@ public class TransmitterTest {
         verify(channel).send(any(), any());
 
         transmitter.ack(UUID.randomUUID(), 1L, 0);
-        ServerTime.addMills(Packet.AWAIT + 1);
+        ServerTime.addMills(config.getPacketAckAwait() + 1);
         transmitter.handle();
         verify(channel, times(2)).send(any(), any());
     }

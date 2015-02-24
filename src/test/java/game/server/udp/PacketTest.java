@@ -1,14 +1,30 @@
 package game.server.udp;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class PacketTest {
+
+    @Mock
+    private UdpConfig config;
+
+    @Before
+    public void setup() {
+        when(config.getPacketMaxSize()).thenReturn(1000);
+        when(config.getPacketAckAwait()).thenReturn(500);
+    }
     
     @Test
     public void delta() {
-        Packet packet = new Packet(1, new UdpSession(null, null), new byte[2048], true);
+        Packet packet = new Packet(1, new UdpSession(null, null), new byte[2048], config);
         byte[] delta0 = packet.delta(0);
         assertEquals(1000, delta0.length);
 
@@ -30,13 +46,13 @@ public class PacketTest {
     
     @Test
     public void capacity() {
-        Packet packet = new Packet(1, new UdpSession(null, null), new byte[2048], true);
+        Packet packet = new Packet(1, new UdpSession(null, null), new byte[2048], config);
         assertEquals(3, packet.getCapacity());
     }
     
     @Test
     public void countParts() {
-        Packet packet = new Packet(1, new UdpSession(null, null), new byte[2048], true);
+        Packet packet = new Packet(1, new UdpSession(null, null), new byte[2048], config);
         assertEquals(1000, packet.countParts(1000, 1));
         assertEquals(1, packet.countParts(1, 1000));
         assertEquals(0, packet.countParts(-1, 1000));
@@ -44,7 +60,7 @@ public class PacketTest {
     
     @Test
     public void ack() {
-        Packet packet = new Packet(1, new UdpSession(null, null), new byte[2048], true);
+        Packet packet = new Packet(1, new UdpSession(null, null), new byte[2048], config);
         assertEquals(3, packet.getLeft());
         packet.toParts();
 

@@ -4,7 +4,9 @@ import game.server.ServerHandler;
 import game.server.ServerTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -17,34 +19,32 @@ public class Transmitter extends ServerHandler {
     
     private static final Logger LOG = LoggerFactory.getLogger(Transmitter.class);
 
-    private final ByteBuffer buff = ByteBuffer.allocate(1024);
+    private ByteBuffer buff;
     private final AtomicLong packetSequence = new AtomicLong();
 
-    private DatagramChannel channel;
-    
     private Map<Long, Packet> index = new HashMap<>();
-    private Queue<Packet> queue = new ArrayBlockingQueue<>(1024);
-    private Packet[] packets = new Packet[2048];
+    private Queue<Packet> queue;
+    private Packet[] packets;
     private int lastIndex = -1;
     private int success;
+
+    @Autowired
+    private DatagramChannel channel;
     
-    //TODO alex_ru: move to config
-    private boolean ackRequirements = false;
-    private int attempts = 5;
-    private int GC_THRESHOLD = 1000;
+    @Autowired
+    private UdpConfig config;
+
     private long threshold;
     
+    @PostConstruct
+    @Override
+    public void onStart() {
+        threshold = ServerTime.mills() + config.getGc();
+        buff =  ByteBuffer.allocate(config.getOutBufferSize());
+        queue = new ArrayBlockingQueue<>(config.getQueueSize());
+        packets = new Packet[config.getPacketsSize()];
+    }
     
-    public Transmitter(DatagramChannel channel) {
-        this(channel, true);
-    }
-
-    public Transmitter(DatagramChannel channel, boolean ackRequirements) {
-        this.channel = channel;
-        this.ackRequirements = ackRequirements;
-        threshold = ServerTime.mills() + GC_THRESHOLD;
-    }
-
     @Override
     public void handle() throws IOException {
         for (int i = 0; i < packets.length; i++) {
@@ -74,13 +74,13 @@ public class Transmitter extends ServerHandler {
     }
 
     public void add(UdpSession session, byte[] datagram) {
-        add(session, datagram, ackRequirements);
+        add(session, datagram, config.isAckRequirements());
     }
     
     public void add(UdpSession session, byte[] datagram, boolean ackRequirements) {
         long packetId = packetSequence.incrementAndGet();
-        Packet packet = new Packet(packetId, session, datagram, ackRequirements);
-        packet.setAttempts(attempts);
+        Packet packet = new Packet(packetId, session, datagram, config);
+        packet.setAttempts(config.getAttempts());
         queue.add(packet);
     }
     
@@ -148,7 +148,7 @@ public class Transmitter extends ServerHandler {
     }
     
     private void clean() {
-        if (success > GC_THRESHOLD || threshold > ServerTime.mills()) {
+        if (success > config.getGc() || threshold > ServerTime.mills()) {
             int k = 0;
             for (int i = lastIndex; i >= k; i--) {
                 if (packets[i] != null) {
@@ -167,15 +167,11 @@ public class Transmitter extends ServerHandler {
             }
             
             success = 0;
-            threshold = ServerTime.mills() + GC_THRESHOLD;
+            threshold = ServerTime.mills() + config.getThreshold();
         }
     }
 
-    public void setAckRequirements(boolean ackRequirements) {
-        this.ackRequirements = ackRequirements;
-    }
-
     public int getAttempts() {
-        return attempts;
+        return config.getAttempts();
     }
 }

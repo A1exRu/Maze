@@ -8,8 +8,6 @@ import java.util.UUID;
 
 public class Packet {
 
-    public static final int DELTA = 1000;
-    public static final int AWAIT = 5000;
     public static final byte[] EMPTY = new byte[0];
 
     public final long id;
@@ -21,19 +19,24 @@ public class Packet {
     private int left;
     private long timeout;
     
+    private int await;
+    private int maxSize;
+    
     private boolean ackRequired;
     private int attempts;
     
-    public Packet(long id, UdpSession session, byte[] datagram, boolean ackRequired) {
+    public Packet(long id, UdpSession session, byte[] datagram, UdpConfig config) {
         this.id = id;
         this.sessionId = session.getId();
         this.address = session.getAddress();
         this.datagram = datagram;
-        this.capacity = countParts(datagram.length, DELTA);
+        this.await = config.getPacketAckAwait();
+        this.maxSize = config.getPacketMaxSize();
+        this.capacity = countParts(datagram.length, maxSize);
         confirms = new BitSet();
         confirms.set(0, capacity, true);
         this.left = capacity;
-        this.ackRequired = ackRequired;
+        this.ackRequired = config.isAckRequirements();
     }
     
     byte[][] toParts() {
@@ -47,12 +50,12 @@ public class Packet {
             return EMPTY;
         }
         
-        int from = DELTA * partNumber;
+        int from = maxSize * partNumber;
         if (from >= datagram.length) {
             return EMPTY;
         }
 
-        int to = Math.min(from + DELTA, datagram.length);
+        int to = Math.min(from + maxSize, datagram.length);
         byte[] part = new byte[to - from];
         for (int i = 0; i < part.length; i++) {
             part[i] = datagram[from + i];
@@ -75,7 +78,7 @@ public class Packet {
     }
     
     public void submit() {
-        timeout = ServerTime.mills() + AWAIT;
+        timeout = ServerTime.mills() + await;
         attempts--;
     }
     
@@ -135,6 +138,22 @@ public class Packet {
 
     public boolean isAckRequired() {
         return ackRequired;
+    }
+
+    public int getAwait() {
+        return await;
+    }
+
+    public void setAwait(int await) {
+        this.await = await;
+    }
+
+    public int getMaxSize() {
+        return maxSize;
+    }
+
+    public void setMaxSize(int maxSize) {
+        this.maxSize = maxSize;
     }
 
     @Override
