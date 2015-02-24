@@ -71,7 +71,7 @@ public class SessionsHolder {
     }
     
     private boolean validate(UUID token) {
-        return token != null;
+        return token != null && !hasSession(token);
     }
     
     private void updateThreshold(UdpSession session) {

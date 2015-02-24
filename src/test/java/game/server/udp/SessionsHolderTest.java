@@ -82,6 +82,21 @@ public class SessionsHolderTest {
     }
 
     @Test
+    public void testDoubleAuthorize() throws Exception {
+        UUID sessionId = UUID.randomUUID();
+        SocketAddress address = Mockito.mock(SocketAddress.class);
+        boolean authorize = holder.authorize(address, sessionId);
+        assertTrue(authorize);
+        assertTrue(holder.hasSession(sessionId));
+        assertFalse(holder.hasSession(UUID.randomUUID()));
+
+        authorize = holder.authorize(address, sessionId);
+        assertFalse(authorize);
+        assertTrue(holder.hasSession(sessionId));
+        assertFalse(holder.hasSession(UUID.randomUUID()));
+    }
+
+    @Test
     public void testAuthorizeNullRejected() throws Exception {
         UUID sessionId = null;
         SocketAddress address = Mockito.mock(SocketAddress.class);
