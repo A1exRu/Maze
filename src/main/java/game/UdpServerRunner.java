@@ -1,6 +1,7 @@
 package game;
 
 import game.server.udp.UdpServer;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -8,7 +9,8 @@ import java.util.Scanner;
 public class UdpServerRunner {
 
     public static void main(String[] args) throws IOException {
-        UdpServer server = new UdpServer(9187);
+        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
+        UdpServer server = ctx.getBean(UdpServer.class);
         server.start();
 
         Scanner scanner = new Scanner(System.in);

@@ -3,7 +3,7 @@ package game.bubble.fx.controller;
 import game.server.udp.Protocol;
 import game.test.UdpClient;
 import game.bubble.Context;
-import game.test.client.MessageHandler;
+import game.bubble.update.MessageHandler;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;

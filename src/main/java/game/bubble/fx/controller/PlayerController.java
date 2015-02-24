@@ -1,6 +1,7 @@
 package game.bubble.fx.controller;
 
 import game.bubble.Context;
+import game.bubble.update.MessageHandler;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -115,7 +116,7 @@ public class PlayerController {
         }
     }
     
-    private class AuthHandler implements game.test.client.MessageHandler {
+    private class AuthHandler implements MessageHandler {
         @Override
         public int getCode() {
             return 2;
@@ -143,7 +144,7 @@ public class PlayerController {
         }
     }
     
-    private class MoveHandler implements game.test.client.MessageHandler {
+    private class MoveHandler implements MessageHandler {
         @Override
         public int getCode() {
             return 3;

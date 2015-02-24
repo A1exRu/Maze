@@ -39,6 +39,7 @@ public class UdpServer {
     }
 
     public void start() {
+        LOG.info("Server started");
         new Thread(group, receiver).start();
         new Thread(group, transmitter).start();
     }

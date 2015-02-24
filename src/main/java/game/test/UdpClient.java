@@ -3,8 +3,8 @@ package game.test;
 import game.bubble.Context;
 import game.server.udp.Packet;
 import game.server.udp.Protocol;
-import game.test.client.MessageHandler;
-import game.test.client.MessageManager;
+import game.bubble.update.MessageHandler;
+import game.bubble.update.MessageManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
