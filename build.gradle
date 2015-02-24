@@ -12,6 +12,7 @@ dependencies {
     compile (
             libs.'spring-core',
             libs.'spring-context',
+            libs.'spring-beans',
             libs.'mockito',
             libs.'logger',
     )

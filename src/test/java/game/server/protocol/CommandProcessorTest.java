@@ -6,6 +6,7 @@ import game.server.udp.UdpSession;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -27,14 +28,15 @@ public class CommandProcessorTest {
     @Mock
     private CommandHandler handler;
     
+    @InjectMocks
+    private CommandProcessor processor;
+    
     @Test
     public void testSupportedCommand() {
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, handler, false);
-        
         CommandHandler authCmd = Mockito.mock(CommandHandler.class);
         CommandHandler ackCmd = Mockito.mock(CommandHandler.class);
-        processor.add(Protocol.AUTH, authCmd, false);
-        processor.add(Protocol.ACK, ackCmd, false);
+        processor.add(Protocol.AUTH, authCmd);
+        processor.add(Protocol.ACK, ackCmd);
         
         SocketAddress address = Mockito.mock(SocketAddress.class);
         ByteBuffer buff = ByteBuffer.allocate(1024);
@@ -51,18 +53,17 @@ public class CommandProcessorTest {
         SocketAddress address = Mockito.mock(SocketAddress.class);
         ByteBuffer buff = ByteBuffer.allocate(1024);
         Protocol.auth(buff, UUID.randomUUID());
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, handler, false);
         processor.process(address, buff);
         verify(handler).handle(address, buff, null);
     }
 
     @Test
     public void testAuthRequiredCommand() {
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, handler, true);
         CommandHandler authCmd = Mockito.mock(CommandHandler.class);
         CommandHandler ackCmd = Mockito.mock(CommandHandler.class);
-        processor.add(Protocol.AUTH, authCmd, false);
-        processor.add(Protocol.ACK, ackCmd, true);
+        when(ackCmd.isAuthRequired()).thenReturn(true);
+        processor.add(Protocol.AUTH, authCmd);
+        processor.add(Protocol.ACK, ackCmd);
 
         SocketAddress address = Mockito.mock(SocketAddress.class);
         UUID token = UUID.randomUUID();
@@ -80,12 +81,12 @@ public class CommandProcessorTest {
 
     @Test
     public void testAuthRequiredDefaultCommand() {
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, handler, true);
         SocketAddress address = Mockito.mock(SocketAddress.class);
         ByteBuffer buff = ByteBuffer.allocate(1024);
         UUID token = UUID.randomUUID();
         Protocol.auth(buff, token);
         sessionsHolder.authorize(address, token);
+        when(handler.isAuthRequired()).thenReturn(true);
 
         processor.process(address, buff);
         verify(handler, times(1)).handle(address, buff, token);
@@ -93,11 +94,11 @@ public class CommandProcessorTest {
 
     @Test
     public void testAuthFailedCommand() {
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, handler, false);
         CommandHandler authCmd = Mockito.mock(CommandHandler.class);
         CommandHandler ackCmd = Mockito.mock(CommandHandler.class);
-        processor.add(Protocol.AUTH, authCmd, true);
-        processor.add(Protocol.ACK, ackCmd, false);
+        when(authCmd.isAuthRequired()).thenReturn(true);
+        processor.add(Protocol.AUTH, authCmd);
+        processor.add(Protocol.ACK, ackCmd);
 
         SocketAddress address = Mockito.mock(SocketAddress.class);
         ByteBuffer buff = ByteBuffer.allocate(1024);
@@ -112,11 +113,11 @@ public class CommandProcessorTest {
 
     @Test
     public void testInvalidAddressCommand() {
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, handler, true);
         CommandHandler authCmd = Mockito.mock(CommandHandler.class);
         CommandHandler ackCmd = Mockito.mock(CommandHandler.class);
-        processor.add(Protocol.AUTH, authCmd, false);
-        processor.add(Protocol.ACK, ackCmd, true);
+        when(ackCmd.isAuthRequired()).thenReturn(true);
+        processor.add(Protocol.AUTH, authCmd);
+        processor.add(Protocol.ACK, ackCmd);
 
         SocketAddress address = Mockito.mock(SocketAddress.class);
         UUID token = UUID.randomUUID();
@@ -135,7 +136,6 @@ public class CommandProcessorTest {
     
     @Test
     public void testAuthFailedDefaultCommand() {
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, handler, true);
         SocketAddress address = Mockito.mock(SocketAddress.class);
         ByteBuffer buff = ByteBuffer.allocate(1024);
         UUID uuid = UUID.randomUUID();
@@ -148,38 +148,35 @@ public class CommandProcessorTest {
     
     @Test(expected = IllegalStateException.class)
     public void testAddTwice() throws Exception {
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, null, false);
         CommandHandler authCmd = Mockito.mock(CommandHandler.class);
-        processor.add(Protocol.AUTH, authCmd, false);
-        processor.add(Protocol.ACK, authCmd, false);
-        processor.add(Protocol.AUTH, authCmd, false);
+        processor.add(Protocol.AUTH, authCmd);
+        processor.add(Protocol.ACK, authCmd);
+        processor.add(Protocol.AUTH, authCmd);
     }
 
     @Test
     public void testValidate() throws Exception {
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, null, false);
         CommandHandler authCmd = Mockito.mock(CommandHandler.class);
-        processor.add(Protocol.AUTH, authCmd, false);
-        processor.add(Protocol.ACK, (a,b,c) -> {}, false);
+        processor.add(Protocol.AUTH, authCmd);
+        processor.add(Protocol.ACK, (a,b,c) -> {});
         processor.validate();
     }
 
     @Test(expected = IllegalStateException.class)
     public void testValidateFailed() throws Exception {
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, null, false);
         CommandHandler authCmd = Mockito.mock(CommandHandler.class);
-        processor.add(Protocol.AUTH, authCmd, false);
-        processor.add(Protocol.ACK, authCmd, false);
+        processor.add(Protocol.AUTH, authCmd);
+        processor.add(Protocol.ACK, authCmd);
         processor.validate();
     }
     
     @Test
     public void testInvalidatedSession() {
-        CommandProcessor processor = new CommandProcessor(sessionsHolder, handler, true);
         CommandHandler authCmd = Mockito.mock(CommandHandler.class);
         CommandHandler ackCmd = Mockito.mock(CommandHandler.class);
-        processor.add(Protocol.AUTH, authCmd, false);
-        processor.add(Protocol.ACK, ackCmd, true);
+        when(ackCmd.isAuthRequired()).thenReturn(true);
+        processor.add(Protocol.AUTH, authCmd);
+        processor.add(Protocol.ACK, ackCmd);
 
         SocketAddress address = Mockito.mock(SocketAddress.class);
         UUID token = UUID.randomUUID();

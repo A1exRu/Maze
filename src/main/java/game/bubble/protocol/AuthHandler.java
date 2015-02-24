@@ -7,6 +7,7 @@ import game.server.udp.Transmitter;
 import game.server.udp.UdpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -17,13 +18,11 @@ public class AuthHandler implements CommandHandler {
     private final static Logger LOG = LoggerFactory.getLogger(AuthHandler.class);
     public static final long FAKE_PLAYER_ID = 1L;
     
+    @Autowired
     private SessionsHolder sessions;
+    
+    @Autowired
     private Transmitter transmitter;
-
-    public AuthHandler(SessionsHolder sessions, Transmitter transmitter) {
-        this.sessions = sessions;
-        this.transmitter = transmitter;
-    }
 
     @Override
     public void handle(SocketAddress address, ByteBuffer buff, UUID sessionId) {

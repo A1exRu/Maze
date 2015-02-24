@@ -5,6 +5,7 @@ import game.server.udp.SessionsHolder;
 import game.server.udp.Transmitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -14,14 +15,12 @@ public class MessageHandler implements CommandHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(MessageHandler.class);
 
-    private SessionsHolder sessionsHolder;
+    @Autowired
     private Transmitter transmitter;
-
-    public MessageHandler(SessionsHolder sessionsHolder, Transmitter transmitter) {
-        this.sessionsHolder = sessionsHolder;
-        this.transmitter = transmitter;
-    }
-
+    
+    @Autowired
+    private SessionsHolder sessionsHolder;
+    
     @Override
     public boolean isAuthRequired() {
         return true;

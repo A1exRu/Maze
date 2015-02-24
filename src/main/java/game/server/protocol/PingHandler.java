@@ -4,6 +4,7 @@ import game.server.ServerTime;
 import game.server.udp.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -14,11 +15,9 @@ import java.util.UUID;
 public class PingHandler implements CommandHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(PingHandler.class);
-    private final DatagramChannel channel;
-
-    public PingHandler(DatagramChannel channel) {
-        this.channel = channel;
-    }
+    
+    @Autowired
+    private DatagramChannel channel;
 
     @Override
     public void handle(SocketAddress address, ByteBuffer buff, UUID sessionUuid) {

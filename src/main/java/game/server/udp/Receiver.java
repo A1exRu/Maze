@@ -1,13 +1,10 @@
 package game.server.udp;
 
-import game.bubble.protocol.AuthHandler;
-import game.bubble.protocol.MessageHandler;
 import game.server.ServerHandler;
-import game.server.protocol.AckHandler;
 import game.server.protocol.CommandProcessor;
-import game.server.protocol.PingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -15,25 +12,26 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Set;
 
 public class Receiver extends ServerHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(Receiver.class);
 
     private final ByteBuffer buff = ByteBuffer.allocate(4096);
-    private final DatagramChannel channel;
     private Selector selector;
+
+    private DatagramChannel channel;
     
+    @Autowired
     private CommandProcessor processor;
-    private SessionsHolder sessions = new SessionsHolder();
     
-    public Receiver(DatagramChannel channel, Transmitter transmitter) {
+    @Autowired
+    private SessionsHolder sessions;
+    
+    public Receiver(DatagramChannel channel) {
         this.channel = channel;
-        processor = new CommandProcessor(sessions, new MessageHandler(sessions, transmitter));
-        processor.add(Protocol.AUTH, new AuthHandler(sessions, transmitter));
-        processor.add(Protocol.ACK, new AckHandler(transmitter));
-        processor.add(Protocol.PING, new PingHandler(channel));
     }
 
     @Override

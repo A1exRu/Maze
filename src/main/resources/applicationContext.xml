@@ -7,14 +7,48 @@
         http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
         http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context-4.1.xsd">
-    
-    <!--<conf-->
+
+    <context:annotation-config />
     <context:property-placeholder location="classpath*:server.properties"/>
+    
+    <!-- UDP server -->
     
     <bean id="udpServer" class="game.server.udp.UdpServer">
         <constructor-arg value="${udp.server.port}"/>
     </bean>
+
+    <bean id="channel" class="java.nio.channels.DatagramChannel" factory-method="open"/>
+
+    <bean id="serverContext" class="game.server.ServerContext"/>
+    <bean id="transmitter" class="game.server.udp.Transmitter">
+        <constructor-arg ref="channel"/>
+    </bean>
+
+    <bean id="receiver" class="game.server.udp.Receiver">
+        <constructor-arg ref="channel"/>
+    </bean>
     
+    <bean class="game.server.udp.SessionsHolder"/>
     
+    <!-- Commands -->
+    
+    <bean id="ackHandler" class="game.server.protocol.AckHandler"/>
+    <bean id="pingHandler" class="game.server.protocol.PingHandler"/>
+    
+    <bean id="commandProcessor" class="game.server.protocol.CommandProcessor">
+        <property name="defaultHandler" ref="messageHandler"/>
+        <property name="handlers">
+            <map>
+                <entry key="1" value-ref="authHandler"/>
+                <entry key="4" value-ref="ackHandler"/>
+                <entry key="8" value-ref="pingHandler"/>
+            </map>
+        </property>
+    </bean>
+    
+    <!-- Custom commands -->
+    <bean id="authHandler" class="game.bubble.protocol.AuthHandler"/>
+    <bean id="messageHandler" class="game.bubble.protocol.MessageHandler"/>
+
 
 </beans>

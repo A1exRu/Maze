@@ -1,6 +1,7 @@
 package game.server.protocol;
 
 import game.server.udp.Transmitter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -8,11 +9,8 @@ import java.util.UUID;
 
 public class AckHandler implements CommandHandler {
 
+    @Autowired
     private Transmitter transmitter;
-
-    public AckHandler(Transmitter transmitter) {
-        this.transmitter = transmitter;
-    }
 
     @Override
     public boolean isAuthRequired() {
