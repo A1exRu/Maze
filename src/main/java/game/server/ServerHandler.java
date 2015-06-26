@@ -7,10 +7,14 @@ public abstract class ServerHandler implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerHandler.class);
 
-    private boolean terminated;
+    private volatile boolean terminated;
     
     public void onStart() {
            
+    }
+
+    public void onStop() {
+
     }
     
     public abstract void handle() throws Exception;
@@ -29,5 +33,6 @@ public abstract class ServerHandler implements Runnable {
 
     public void stop() {
         terminated = true;
+        onStop();
     }
 }

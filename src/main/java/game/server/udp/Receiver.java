@@ -12,7 +12,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.Iterator;
 import java.util.Set;
 
 public class Receiver extends ServerHandler {
@@ -46,19 +45,22 @@ public class Receiver extends ServerHandler {
     }
 
     @Override
+    public void onStop() {
+        selector.wakeup();
+    }
+
+    @Override
     public void handle() throws IOException {
         sessions.invalidate();
         receive();
     }
-    
+
     public void receive() throws IOException {
         selector.select();
         Set<SelectionKey> keys = selector.keys();
-        Iterator<SelectionKey> it = keys.iterator();
-        while (it.hasNext()) {
-            SelectionKey key = it.next();
+        for (SelectionKey key : keys) {
             if (key.isReadable()) {
-                DatagramChannel ch = (DatagramChannel)key.channel();
+                DatagramChannel ch = (DatagramChannel) key.channel();
                 buff.clear();
                 SocketAddress address = ch.receive(buff);
                 buff.flip();
@@ -67,9 +69,4 @@ public class Receiver extends ServerHandler {
         }
     }
 
-    @Override
-    public void stop() {
-        super.stop();
-        selector.wakeup();
-    }
 }
