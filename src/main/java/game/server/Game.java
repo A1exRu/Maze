@@ -3,9 +3,6 @@ package game.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-
 public class Game implements Runnable {
 
     private static final Logger LOG = LoggerFactory.getLogger(Game.class);
@@ -14,7 +11,7 @@ public class Game implements Runnable {
     private final int TICK_LENGTH = 30;
 
     private final long gameId;
-    private boolean gameOver;
+    private volatile boolean gameOver;
 
     private int tick;
     private long lastTime = Long.MAX_VALUE;
@@ -49,7 +46,7 @@ public class Game implements Runnable {
         }
     }
 
-    private void tick() {
+    public void tick() {
 
     }
 

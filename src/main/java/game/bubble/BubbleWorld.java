@@ -1,20 +1,45 @@
 package game.bubble;
 
+import game.server.Game;
+import game.server.GameOverException;
+import game.server.ServerContext;
 import game.world.Point;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BubbleWorld {
+public class BubbleWorld extends Game {
     
     public final float width = 800;
     public final float height = 600;
     
     private Map<Long, BubbleHero> heroes = new HashMap<>();
     private long heroIndex;
+
     
+    int temp;
+    
+    @Autowired
+    private ServerContext context;
+    
+    @PostConstruct
+    public void start() {
+        context.add(this);
+    }
+    
+    public BubbleWorld(long gameId) {
+        super(gameId);
+    }
+
+    @Override
     public void tick() {
-        
+        System.out.println("Bubble juggle " + temp);
+        temp++;
+        if (temp > 1) {
+            stop();
+        }
     }
     
     public BubbleHero newHero() {

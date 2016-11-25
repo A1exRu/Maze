@@ -48,6 +48,10 @@
     <!-- Custom commands -->
     <bean id="authHandler" class="game.bubble.protocol.AuthHandler"/>
     <bean id="messageHandler" class="game.bubble.protocol.MessageHandler"/>
+    
+    <bean id="bubbleWorld" class="game.bubble.BubbleWorld">
+        <constructor-arg value="1"/>
+    </bean>
 
 
 </beans>

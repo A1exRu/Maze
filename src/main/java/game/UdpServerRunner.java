@@ -18,10 +18,11 @@ public class UdpServerRunner {
             String next = scanner.next();
             if (":q".equals(next)) {
                 server.stop();
+                ctx.destroy();
+                scanner.close();
                 break;
             } else if (":status".equals(next)) {
                 System.out.println("Server running");
-                break;
             }
         }
     }

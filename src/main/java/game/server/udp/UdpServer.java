@@ -20,7 +20,7 @@ public class UdpServer {
 
     @Autowired
     private Receiver receiver;
-    
+
     @Autowired
     private Transmitter transmitter;
 
