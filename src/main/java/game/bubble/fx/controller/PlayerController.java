@@ -1,5 +1,9 @@
 package game.bubble.fx.controller;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
 import game.bubble.Context;
 import game.bubble.update.MessageHandler;
 import javafx.animation.TranslateTransition;
@@ -11,10 +15,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
-
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
 public class PlayerController {
 

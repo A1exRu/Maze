@@ -1,14 +1,18 @@
 package game.server.protocol;
 
-import game.server.udp.Protocol;
-import game.server.udp.SessionsHolder;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.util.*;
+import game.server.udp.Protocol;
+import game.server.udp.SessionsHolder;
 
 public class CommandProcessor {
 

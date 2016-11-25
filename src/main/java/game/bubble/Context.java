@@ -1,8 +1,8 @@
 package game.bubble;
 
-import game.test.UdpClient;
-
 import java.util.UUID;
+
+import game.test.UdpClient;
 
 public class Context {
 

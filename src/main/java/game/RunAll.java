@@ -1,8 +1,8 @@
 package game;
 
-import game.bubble.BubbleClient;
-
 import java.io.IOException;
+
+import game.bubble.BubbleClient;
 
 public class RunAll {
 

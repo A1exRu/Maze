@@ -1,10 +1,11 @@
 package game;
 
-import game.server.udp.UdpServer;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import java.io.IOException;
 import java.util.Scanner;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import game.server.udp.UdpServer;
 
 public class UdpServerRunner {
 

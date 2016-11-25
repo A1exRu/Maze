@@ -1,10 +1,11 @@
 package game.world;
 
-import game.core.Unit;
+import static junit.framework.TestCase.assertEquals;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.TestCase.assertEquals;
+import game.core.Unit;
 
 public class CaveTest {
 

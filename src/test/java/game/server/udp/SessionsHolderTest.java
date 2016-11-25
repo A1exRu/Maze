@@ -1,16 +1,20 @@
 package game.server.udp;
 
-import game.server.ServerTime;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.net.SocketAddress;
+import java.util.UUID;
+
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.net.SocketAddress;
-import java.util.UUID;
-
-import static org.junit.Assert.*;
+import game.server.ServerTime;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SessionsHolderTest {

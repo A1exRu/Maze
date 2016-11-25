@@ -1,9 +1,14 @@
 package game.bubble.fx.controller;
 
-import game.server.udp.Protocol;
-import game.test.UdpClient;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+
 import game.bubble.Context;
 import game.bubble.update.MessageHandler;
+import game.server.udp.Protocol;
+import game.test.UdpClient;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -11,11 +16,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class HeaderController {
     

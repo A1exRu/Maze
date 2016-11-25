@@ -1,14 +1,15 @@
 package game.bubble;
 
-import game.server.Game;
-import game.server.GameOverException;
-import game.server.ServerContext;
-import game.world.Point;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import game.server.Game;
+import game.server.ServerContext;
+import game.world.Point;
 
 public class BubbleWorld extends Game {
     

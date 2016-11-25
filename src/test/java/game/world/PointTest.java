@@ -1,9 +1,9 @@
 package game.world;
 
-import org.junit.Test;
-
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
+
+import org.junit.Test;
 
 public class PointTest {
 

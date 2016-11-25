@@ -1,17 +1,18 @@
 package game.bubble.protocol;
 
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import game.server.protocol.CommandHandler;
 import game.server.udp.Protocol;
 import game.server.udp.SessionsHolder;
 import game.server.udp.Transmitter;
 import game.server.udp.UdpSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.util.UUID;
 
 public class AuthHandler implements CommandHandler {
 

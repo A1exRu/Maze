@@ -1,9 +1,15 @@
 package game.server.protocol;
 
-import game.server.udp.Protocol;
-import game.server.udp.SessionsHolder;
-import game.server.udp.UdpSession;
-import org.junit.Before;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.util.UUID;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -12,12 +18,8 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.util.UUID;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import game.server.udp.Protocol;
+import game.server.udp.SessionsHolder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CommandProcessorTest {

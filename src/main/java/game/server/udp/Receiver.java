@@ -1,11 +1,5 @@
 package game.server.udp;
 
-import game.server.ServerHandler;
-import game.server.protocol.CommandProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -13,6 +7,13 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import game.server.ServerHandler;
+import game.server.protocol.CommandProcessor;
 
 public class Receiver extends ServerHandler {
 

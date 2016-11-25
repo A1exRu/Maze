@@ -1,8 +1,8 @@
 package game.bubble.convert;
 
-import game.core.FUpdate;
-
 import java.nio.ByteBuffer;
+
+import game.core.FUpdate;
 
 public class FMove extends FUpdate {
     

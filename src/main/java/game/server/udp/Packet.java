@@ -1,10 +1,10 @@
 package game.server.udp;
 
-import game.server.ServerTime;
-
 import java.net.SocketAddress;
 import java.util.BitSet;
 import java.util.UUID;
+
+import game.server.ServerTime;
 
 public class Packet {
 
