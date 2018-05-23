@@ -1,7 +1,7 @@
 .idea
 .gradle
+.DS_STORE
 *.iml
-gradle/
 out
 build
 target
