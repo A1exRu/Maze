@@ -1,10 +1,10 @@
 package game.server.udp;
 
+import game.server.ServerTime;
+
 import java.net.SocketAddress;
 import java.util.BitSet;
 import java.util.UUID;
-
-import game.server.ServerTime;
 
 public class Packet {
 
@@ -57,10 +57,8 @@ public class Packet {
 
         int to = Math.min(from + maxSize, datagram.length);
         byte[] part = new byte[to - from];
-        for (int i = 0; i < part.length; i++) {
-            part[i] = datagram[from + i];
-        }
-        
+
+        System.arraycopy(datagram, from, part, 0, part.length);
         return part;
     }
 
