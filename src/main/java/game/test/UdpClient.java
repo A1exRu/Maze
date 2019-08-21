@@ -1,5 +1,13 @@
 package game.test;
 
+import game.bubble.Context;
+import game.bubble.update.MessageHandler;
+import game.bubble.update.MessageManager;
+import game.server.udp.Packet;
+import game.server.udp.Protocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -12,15 +20,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import game.bubble.Context;
-import game.bubble.update.MessageHandler;
-import game.bubble.update.MessageManager;
-import game.server.udp.Packet;
-import game.server.udp.Protocol;
 
 public class UdpClient {
 
@@ -75,6 +74,9 @@ public class UdpClient {
                     in.clear();
                     channel.receive(in);
                     in.flip();
+                    if (in.remaining() == 0) {
+                        return;
+                    }
                     byte cmd = Protocol.getCommand(in);
                     if (cmd == Protocol.PONG) {
                         long ping = in.getLong();
