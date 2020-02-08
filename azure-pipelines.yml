@@ -13,6 +13,7 @@ steps:
 - task: CmdLine@2
   inputs:
     script: |
+      echo Hello World
       echo $AZ_NAME
       echo ${AZ_PWD}
 
