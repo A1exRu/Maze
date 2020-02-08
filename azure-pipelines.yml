@@ -14,10 +14,10 @@ steps:
   inputs:
     script: |
       echo Hello World
-      echo $test
-      echo ${test}
-      echo $AZ_NAME
-      echo ${AZ_PWD}
+      echo $(test)
+      echo x $(test)
+      echo $(AZ_NAME)
+      echo $(AZ_PWD)
 
 # - task: AzureCLI@2
 #   inputs:
