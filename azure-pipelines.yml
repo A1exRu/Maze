@@ -10,14 +10,15 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: Gradle@2
+
+- task: AzureCLI@2
   inputs:
-    workingDirectory: ''
-    gradleWrapperFile: 'gradlew'
-    gradleOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.11'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/TEST-*.xml'
-    tasks: 'build'
+    azureSubscription: 'nrfu-grants(96abf0d6-b447-4792-954d-b5fe82e21775)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      touch test.txt
+      echo $AZ_NAME
+      each ${AZ_PWD}
+      az storage blob upload --container-name ${d} --file dist/js/main.js --name main.js  -u $AZ_NAME -p $AZ_PWD
+      az storage blob upload --container-name static --file dist/css/main.css --name main.css  -u $AZ_NAME -p $AZ_PWD
