@@ -13,20 +13,9 @@ steps:
 - task: CmdLine@2
   inputs:
     script: |
-      echo Hello World
-      echo $(test)
-      echo x $(test)
-      echo $(AZ_NAME)
-      echo $(AZ_PWD)
-
-# - task: AzureCLI@2
-#   inputs:
-#     azureSubscription: 'nrfu-grants(96abf0d6-b447-4792-954d-b5fe82e21775)'
-#     scriptType: 'pscore'
-#     scriptLocation: 'inlineScript'
-#     inlineScript: |
-#       touch test.txt
-#       echo "name = $AZ_NAME"
-#       each "pwd = ${AZ_PWD}""
-#       az storage blob upload --container-name ${d} --file dist/js/main.js --name main.js  -u $AZ_NAME -p $AZ_PWD
-#       az storage blob upload --container-name static --file dist/css/main.css --name main.css  -u $AZ_NAME -p $AZ_PWD
+      echo Hello World for Everyone
+- task: CmdLine@2
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+  inputs:
+    script: |
+      echo Hello World - master only
