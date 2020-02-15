@@ -15,7 +15,7 @@ steps:
     script: |
       echo Hello World for Everyone
 - task: CmdLine@2
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   inputs:
     script: |
       echo Hello World - master only
